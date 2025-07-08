@@ -68,21 +68,21 @@ serve(async (req) => {
               'Authorization': `Bearer ${openAIApiKey}`,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              messages: [
-                { 
-                  role: 'system', 
-                  content: 'You are a document analyzer. Provide a concise summary and analysis of the document content. Include key points, topics, and potential insights.' 
-                },
-                { 
-                  role: 'user', 
-                  content: `Analyze this document content:\n\n${extractedText.substring(0, 2000)}` 
-                }
-              ],
-              max_tokens: 500,
-              temperature: 0.3,
-            }),
+           body: JSON.stringify({
+             model: 'gpt-4o-mini',
+             messages: [
+               { 
+                 role: 'system', 
+                 content: 'You are an expert document analyzer. Provide a comprehensive analysis that includes: 1) Executive Summary, 2) Key Points and Topics, 3) Important Data/Numbers, 4) Actionable Insights, 5) Potential Applications. Format your response clearly with headers.' 
+               },
+               { 
+                 role: 'user', 
+                 content: `Please analyze this document thoroughly:\n\n${extractedText.substring(0, 3000)}` 
+               }
+             ],
+             max_tokens: 800,
+             temperature: 0.2,
+           }),
           });
 
           if (analysisResponse.ok) {

@@ -3,7 +3,8 @@ import { useDocuments } from '@/hooks/useDocuments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Trash2, Download, File } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Upload, FileText, Trash2, Download, File, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -191,6 +192,31 @@ export default function Documents() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {document.processed_at && document.content && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Analysis
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Document Analysis: {document.filename}</DialogTitle>
+                              <DialogDescription>
+                                AI-generated analysis and insights from your document
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="mt-4">
+                              <div className="prose prose-sm max-w-none bg-muted/50 p-4 rounded-lg">
+                                <pre className="whitespace-pre-wrap text-sm text-foreground">
+                                  {document.content}
+                                </pre>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
                       {document.file_url && (
                         <Button
                           variant="outline"

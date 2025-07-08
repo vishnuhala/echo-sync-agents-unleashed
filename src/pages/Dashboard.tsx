@@ -74,7 +74,9 @@ const Dashboard = () => {
     }
   };
 
-  const activeAgents = userAgents?.length || 0;
+  const activeAgents = userAgents?.filter(ua => 
+    agents.some(a => a.id === ua.agent_id && a.active)
+  ).length || 0;
   const availableAgents = agents?.filter(a => a.role === profile?.role).length || 0;
   const totalDocuments = documents?.length || 0;
 

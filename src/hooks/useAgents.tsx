@@ -117,6 +117,28 @@ export function AgentsProvider({ children }: { children: ReactNode }) {
   const activateAgent = async (agentId: string) => {
     if (!user) return { error: new Error('No user logged in') };
 
+    // Check if agent is already activated
+    const { data: existingAgent } = await supabase
+      .from('user_agents')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('agent_id', agentId)
+      .single();
+
+    if (existingAgent) {
+      return { error: new Error('Agent is already activated') };
+    }
+
+    // Check if user has reached the 5-agent limit
+    const { data: userAgentCount } = await supabase
+      .from('user_agents')
+      .select('id', { count: 'exact' })
+      .eq('user_id', user.id);
+
+    if (userAgentCount && userAgentCount.length >= 5) {
+      return { error: new Error('Maximum of 5 agents allowed. Please deactivate an agent first.') };
+    }
+
     const { error } = await supabase
       .from('user_agents')
       .insert({
