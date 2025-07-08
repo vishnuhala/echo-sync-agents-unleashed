@@ -1,20 +1,28 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useAgents } from '@/hooks/useAgents';
+import { useDocuments } from '@/hooks/useDocuments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { 
   TrendingUp, 
   GraduationCap, 
   Rocket, 
   Settings, 
   Bot, 
-  Activity,
+  FileText,
+  MessageSquare,
+  Zap,
   LogOut
 } from 'lucide-react';
 
 const Dashboard = () => {
   const { profile, signOut } = useAuth();
+  const { agents, userAgents, loading: agentsLoading } = useAgents();
+  const { documents, loading: documentsLoading } = useDocuments();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -66,6 +74,10 @@ const Dashboard = () => {
     }
   };
 
+  const activeAgents = userAgents?.length || 0;
+  const availableAgents = agents?.filter(a => a.role === profile?.role).length || 0;
+  const totalDocuments = documents?.length || 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       {/* Header */}
@@ -109,114 +121,192 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
               <Bot className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{activeAgents}</div>
               <p className="text-xs text-muted-foreground">
-                No agents activated yet
+                {activeAgents} of {availableAgents} activated
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tasks Completed</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Documents</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{totalDocuments}</div>
               <p className="text-xs text-muted-foreground">
-                Ready to start working
+                Files uploaded for analysis
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Workflows</CardTitle>
+              <CardTitle className="text-sm font-medium">Profile</CardTitle>
+              {getRoleIcon(profile?.role)}
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{profile?.full_name?.split(' ')[0] || 'User'}</div>
+              <p className="text-xs text-muted-foreground capitalize">
+                {getRoleDisplayName(profile?.role)}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Status</CardTitle>
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold text-green-600">Active</div>
               <p className="text-xs text-muted-foreground">
-                Create your first workflow
+                All systems operational
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Getting Started */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Getting Started</CardTitle>
-            <CardDescription>
-              Set up your AI agents to start automating your workflows
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button variant="outline" className="justify-start h-auto p-4">
-                <div className="text-left">
-                  <div className="font-medium">Activate Your First Agent</div>
-                  <div className="text-sm text-muted-foreground">
-                    Choose from specialized agents for your role
-                  </div>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/agents')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                AI Agents
+              </CardTitle>
+              <CardDescription>
+                Discover and activate AI agents for your role
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {availableAgents} agents available
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {activeAgents} currently active
+                  </p>
                 </div>
-              </Button>
-              
-              <Button variant="outline" className="justify-start h-auto p-4">
-                <div className="text-left">
-                  <div className="font-medium">Connect External Services</div>
-                  <div className="text-sm text-muted-foreground">
-                    Integrate with your existing tools and platforms
-                  </div>
-                </div>
-              </Button>
-              
-              <Button variant="outline" className="justify-start h-auto p-4">
-                <div className="text-left">
-                  <div className="font-medium">Create a Workflow</div>
-                  <div className="text-sm text-muted-foreground">
-                    Automate tasks with custom workflows
-                  </div>
-                </div>
-              </Button>
-              
-              <Button variant="outline" className="justify-start h-auto p-4">
-                <div className="text-left">
-                  <div className="font-medium">View Analytics</div>
-                  <div className="text-sm text-muted-foreground">
-                    Track your agents' performance and insights
-                  </div>
-                </div>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                <Button variant="outline" size="sm">
+                  Explore
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Coming Soon */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Phase 2: Agent Marketplace</CardTitle>
-            <CardDescription>
-              Your specialized AI agents will be available here soon
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <Bot className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-lg font-medium mb-2">Agent ecosystem coming soon!</p>
-              <p className="text-muted-foreground">
-                We're building specialized AI agents for {getRoleDisplayName(profile?.role).toLowerCase()}s
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/documents')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Documents
+              </CardTitle>
+              <CardDescription>
+                Upload and manage your documents
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {totalDocuments} documents uploaded
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    PDF, DOC, TXT supported
+                  </p>
+                </div>
+                <Button variant="outline" size="sm">
+                  Manage
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                Recent Chats
+              </CardTitle>
+              <CardDescription>
+                Continue conversations with your agents
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {activeAgents > 0 ? (
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {activeAgents} active conversation{activeAgents !== 1 ? 's' : ''}
+                    </p>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/agents')}>
+                      View Chats
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      No active conversations
+                    </p>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/agents')}>
+                      Start Chat
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Getting Started - For users with no active agents */}
+        {activeAgents === 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Getting Started</CardTitle>
+              <CardDescription>
+                Set up your AI agents to start automating your workflows
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto p-4"
+                  onClick={() => navigate('/agents')}
+                >
+                  <div className="text-left">
+                    <div className="font-medium">Activate Your First Agent</div>
+                    <div className="text-sm text-muted-foreground">
+                      Choose from specialized agents for your role
+                    </div>
+                  </div>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto p-4"
+                  onClick={() => navigate('/documents')}
+                >
+                  <div className="text-left">
+                    <div className="font-medium">Upload Documents</div>
+                    <div className="text-sm text-muted-foreground">
+                      Add files for AI analysis and processing
+                    </div>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );

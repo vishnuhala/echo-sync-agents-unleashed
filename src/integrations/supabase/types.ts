@@ -14,6 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_interactions: {
+        Row: {
+          agent_id: string
+          created_at: string
+          document_id: string | null
+          id: string
+          input: string
+          metadata: Json | null
+          output: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          input: string
+          metadata?: Json | null
+          output: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          input?: string
+          metadata?: Json | null
+          output?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_interactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_interactions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          description: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          system_prompt: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          description: string
+          id?: string
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          system_prompt: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          system_prompt?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          content: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          filename: string
+          id: string
+          processed_at: string | null
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          filename: string
+          id?: string
+          processed_at?: string | null
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          filename?: string
+          id?: string
+          processed_at?: string | null
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -49,6 +169,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_agents: {
+        Row: {
+          activated_at: string
+          agent_id: string
+          config: Json | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string
+          agent_id: string
+          config?: Json | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activated_at?: string
+          agent_id?: string
+          config?: Json | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_agents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
