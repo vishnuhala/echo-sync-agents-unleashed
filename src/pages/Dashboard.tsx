@@ -79,28 +79,39 @@ const Dashboard = () => {
   const totalDocuments = documents?.length || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
+    <div className="min-h-screen bg-gradient-subtle">
+      {/* Header with Gradient */}
+      <header className="border-b bg-card/50 backdrop-blur-sm shadow-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Bot className="h-8 w-8 text-primary" />
-              <h1 className="text-xl font-bold">EchoSync</h1>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-gradient-primary">
+                <Bot className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                  EchoSync
+                </h1>
+                <p className="text-xs text-muted-foreground">AI Agent Platform</p>
+              </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                {getRoleIcon(profile?.role)}
-                <span className="font-medium">{profile?.full_name}</span>
-                <Badge variant="secondary">
-                  {getRoleDisplayName(profile?.role)}
-                </Badge>
+              <div className="flex items-center space-x-3 bg-card/80 rounded-lg px-4 py-2 shadow-card">
+                <div className="p-1.5 rounded-full bg-gradient-primary">
+                  {getRoleIcon(profile?.role)}
+                </div>
+                <div className="text-right">
+                  <span className="font-medium text-sm">{profile?.full_name}</span>
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {getRoleDisplayName(profile?.role)}
+                  </Badge>
+                </div>
               </div>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="hover:bg-accent">
                 <Settings className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="hover:bg-destructive/10">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -110,22 +121,65 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">
-            Welcome back, {profile?.full_name?.split(' ')[0]}!
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            {getWelcomeMessage(profile?.role)}
-          </p>
+        {/* Welcome Section with Role-Specific Styling */}
+        <div className="mb-8 relative">
+          <div className={`absolute inset-0 rounded-2xl blur-3xl opacity-20 ${
+            profile?.role === 'trader' ? 'bg-gradient-business' :
+            profile?.role === 'student' ? 'bg-gradient-student' :
+            profile?.role === 'founder' ? 'bg-gradient-founder' :
+            'bg-gradient-primary'
+          }`} />
+          <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl p-8 shadow-elegant border">
+            <div className="flex items-center gap-4 mb-4">
+              <div className={`p-4 rounded-xl ${
+                profile?.role === 'trader' ? 'bg-gradient-business' :
+                profile?.role === 'student' ? 'bg-gradient-student' :
+                profile?.role === 'founder' ? 'bg-gradient-founder' :
+                'bg-gradient-primary'
+              }`}>
+                {getRoleIcon(profile?.role)}
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold mb-2">
+                  Welcome back, {profile?.full_name?.split(' ')[0]}! 
+                  {profile?.role === 'trader' && ' 📈'}
+                  {profile?.role === 'student' && ' 🎓'}
+                  {profile?.role === 'founder' && ' 🚀'}
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  {getWelcomeMessage(profile?.role)}
+                </p>
+              </div>
+            </div>
+            
+            {/* Role-specific quick stats */}
+            {profile?.role === 'trader' && (
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="bg-success/10 rounded-lg p-3 border border-success/20">
+                  <div className="text-success font-bold text-lg">+12.5%</div>
+                  <div className="text-xs text-muted-foreground">Portfolio Growth</div>
+                </div>
+                <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+                  <div className="text-primary font-bold text-lg">$25.4K</div>
+                  <div className="text-xs text-muted-foreground">Active Positions</div>
+                </div>
+                <div className="bg-warning/10 rounded-lg p-3 border border-warning/20">
+                  <div className="text-warning font-bold text-lg">8</div>
+                  <div className="text-xs text-muted-foreground">Alerts Today</div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Enhanced Quick Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="bg-gradient-to-br from-card to-card/50 shadow-card border-0 hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
-              <Bot className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-primary">
+                <Bot className="h-4 w-4 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{activeAgents}</div>
@@ -135,10 +189,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-card to-card/50 shadow-card border-0 hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Documents</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-gradient-primary">
+                <FileText className="h-4 w-4 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalDocuments}</div>
@@ -148,10 +204,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-card to-card/50 shadow-card border-0 hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Profile</CardTitle>
-              {getRoleIcon(profile?.role)}
+              <div className="p-2 rounded-lg bg-gradient-primary">
+                {getRoleIcon(profile?.role)}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{profile?.full_name?.split(' ')[0] || 'User'}</div>
@@ -161,13 +219,15 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-success/10 to-success/5 shadow-card border-success/20 hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Status</CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-success">
+                <Settings className="h-4 w-4 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">Active</div>
+              <div className="text-2xl font-bold text-success">Active</div>
               <p className="text-xs text-muted-foreground">
                 All systems operational
               </p>
@@ -175,111 +235,104 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Quick Actions */}
+        {/* Enhanced Quick Actions with Beautiful Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/agents')}>
+          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/agents')}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                AI Agents
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-primary group-hover:scale-110 transition-transform duration-300">
+                  <Zap className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold">AI Agents</div>
+                  <div className="text-xs text-muted-foreground">Intelligent Assistants</div>
+                </div>
               </CardTitle>
-              <CardDescription>
-                Discover and activate AI agents for your role
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {availableAgents} agents available
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {activeAgents} currently active
-                  </p>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Available:</span>
+                  <span className="font-medium">{availableAgents}</span>
                 </div>
-                <Button variant="outline" size="sm">
-                  Explore
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Active:</span>
+                  <span className="font-medium text-success">{activeAgents}</span>
+                </div>
+                <Button variant="outline" size="sm" className="w-full mt-3 group-hover:bg-primary group-hover:text-white transition-colors">
+                  Explore Agents →
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/documents')}>
+          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/documents')}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                Documents
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-primary group-hover:scale-110 transition-transform duration-300">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold">Documents</div>
+                  <div className="text-xs text-muted-foreground">AI Analysis Ready</div>
+                </div>
               </CardTitle>
-              <CardDescription>
-                Upload and manage your documents
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {totalDocuments} documents uploaded
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    PDF, DOC, TXT supported
-                  </p>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Uploaded:</span>
+                  <span className="font-medium">{totalDocuments}</span>
                 </div>
-                <Button variant="outline" size="sm">
-                  Manage
+                <div className="text-xs text-muted-foreground">PDF, DOC, TXT supported</div>
+                <Button variant="outline" size="sm" className="w-full mt-3 group-hover:bg-primary group-hover:text-white transition-colors">
+                  Manage Files →
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/workflows')}>
+          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/workflows')}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5 text-primary" />
-                Workflows
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-primary group-hover:scale-110 transition-transform duration-300">
+                  <Settings className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold">Workflows</div>
+                  <div className="text-xs text-muted-foreground">Smart Automation</div>
+                </div>
               </CardTitle>
-              <CardDescription>
-                Automate agent interactions
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Automation workflows
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Schedule & trigger agents
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Create
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">Create powerful automation workflows</div>
+                <div className="text-xs text-muted-foreground">Schedule & trigger agents</div>
+                <Button variant="outline" size="sm" className="w-full mt-3 group-hover:bg-primary group-hover:text-white transition-colors">
+                  Create Workflow →
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/analytics')}>
+          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/analytics')}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                Analytics
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-primary group-hover:scale-110 transition-transform duration-300">
+                  <MessageSquare className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold">Analytics</div>
+                  <div className="text-xs text-muted-foreground">Performance Insights</div>
+                </div>
               </CardTitle>
-              <CardDescription>
-                Track performance metrics
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Performance insights
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Usage patterns & trends
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">
-                  View
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">Track agent performance</div>
+                <div className="text-xs text-muted-foreground">Usage patterns & trends</div>
+                <Button variant="outline" size="sm" className="w-full mt-3 group-hover:bg-primary group-hover:text-white transition-colors">
+                  View Metrics →
                 </Button>
               </div>
             </CardContent>
