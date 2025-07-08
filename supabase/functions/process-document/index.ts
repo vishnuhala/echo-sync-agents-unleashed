@@ -26,6 +26,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     let extractedText = '';
+    let analysisResult = '';
 
     try {
       // Download the file
@@ -41,12 +42,60 @@ serve(async (req) => {
         // For text files, simply decode as UTF-8
         extractedText = new TextDecoder().decode(fileBuffer);
       } else if (fileType === 'application/pdf') {
-        // For PDF files, we'll use a simple extraction approach
-        // In a production environment, you'd want to use a proper PDF parsing library
-        extractedText = 'PDF content extraction would require additional libraries. Please upload text files for now.';
+        // For PDF files, we'll extract what we can and provide guidance
+        extractedText = new TextDecoder().decode(fileBuffer);
+        // Try to extract readable text (basic approach)
+        if (extractedText.includes('%PDF')) {
+          extractedText = 'PDF document detected. Content: ' + extractedText.replace(/[^\x20-\x7E]/g, ' ').substring(0, 1000) + '...';
+        }
+      } else if (fileType?.includes('word') || fileType?.includes('document')) {
+        // For Word documents, extract what we can
+        extractedText = new TextDecoder().decode(fileBuffer);
+        extractedText = 'Word document detected. Raw content extracted: ' + extractedText.replace(/[^\x20-\x7E]/g, ' ').substring(0, 1000) + '...';
       } else {
-        // For other document types, placeholder text
-        extractedText = 'Document uploaded successfully. Content extraction for this file type will be available soon.';
+        // For other document types, at least show some content
+        extractedText = new TextDecoder().decode(fileBuffer);
+        extractedText = 'Document content: ' + extractedText.replace(/[^\x20-\x7E]/g, ' ').substring(0, 1000) + '...';
+      }
+
+      // Perform AI analysis if we have OpenAI key and valid content
+      const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+      if (openAIApiKey && extractedText.length > 50) {
+        try {
+          const analysisResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openAIApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [
+                { 
+                  role: 'system', 
+                  content: 'You are a document analyzer. Provide a concise summary and analysis of the document content. Include key points, topics, and potential insights.' 
+                },
+                { 
+                  role: 'user', 
+                  content: `Analyze this document content:\n\n${extractedText.substring(0, 2000)}` 
+                }
+              ],
+              max_tokens: 500,
+              temperature: 0.3,
+            }),
+          });
+
+          if (analysisResponse.ok) {
+            const analysisData = await analysisResponse.json();
+            analysisResult = analysisData.choices[0].message.content;
+            
+            // Combine original content with analysis
+            extractedText = `Original Content:\n${extractedText}\n\n--- AI Analysis ---\n${analysisResult}`;
+          }
+        } catch (analysisError) {
+          console.error('Analysis error:', analysisError);
+          // Continue without analysis if it fails
+        }
       }
 
       // Update the document with extracted content
