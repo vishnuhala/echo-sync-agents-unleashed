@@ -176,7 +176,7 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/agents')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -231,37 +231,56 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/workflows')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                Recent Chats
+                <Settings className="h-5 w-5 text-primary" />
+                Workflows
               </CardTitle>
               <CardDescription>
-                Continue conversations with your agents
+                Automate agent interactions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {activeAgents > 0 ? (
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {activeAgents} active conversation{activeAgents !== 1 ? 's' : ''}
-                    </p>
-                    <Button variant="outline" size="sm" onClick={() => navigate('/agents')}>
-                      View Chats
-                    </Button>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      No active conversations
-                    </p>
-                    <Button variant="outline" size="sm" onClick={() => navigate('/agents')}>
-                      Start Chat
-                    </Button>
-                  </div>
-                )}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Automation workflows
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Schedule & trigger agents
+                  </p>
+                </div>
+                <Button variant="outline" size="sm">
+                  Create
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/analytics')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                Analytics
+              </CardTitle>
+              <CardDescription>
+                Track performance metrics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Performance insights
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Usage patterns & trends
+                  </p>
+                </div>
+                <Button variant="outline" size="sm">
+                  View
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -277,16 +296,16 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Button 
                   variant="outline" 
                   className="justify-start h-auto p-4"
                   onClick={() => navigate('/agents')}
                 >
                   <div className="text-left">
-                    <div className="font-medium">Activate Your First Agent</div>
+                    <div className="font-medium">Activate Agents</div>
                     <div className="text-sm text-muted-foreground">
-                      Choose from specialized agents for your role
+                      Choose specialized AI agents
                     </div>
                   </div>
                 </Button>
@@ -299,7 +318,33 @@ const Dashboard = () => {
                   <div className="text-left">
                     <div className="font-medium">Upload Documents</div>
                     <div className="text-sm text-muted-foreground">
-                      Add files for AI analysis and processing
+                      Add files for AI analysis
+                    </div>
+                  </div>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto p-4"
+                  onClick={() => navigate('/workflows')}
+                >
+                  <div className="text-left">
+                    <div className="font-medium">Create Workflows</div>
+                    <div className="text-sm text-muted-foreground">
+                      Automate agent tasks
+                    </div>
+                  </div>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto p-4"
+                  onClick={() => navigate('/integrations')}
+                >
+                  <div className="text-left">
+                    <div className="font-medium">Connect Services</div>
+                    <div className="text-sm text-muted-foreground">
+                      External integrations
                     </div>
                   </div>
                 </Button>

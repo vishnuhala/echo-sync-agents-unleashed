@@ -67,3 +67,47 @@ export interface AgentInteraction {
   metadata: Record<string, any>;
   created_at: string;
 }
+
+// Phase 3 & 4 Additional Types
+export interface AgentConversation {
+  id: string;
+  user_id: string;
+  agent_id: string;
+  title: string;
+  context: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Workflow {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  config: Record<string, any>;
+  trigger_type: 'manual' | 'scheduled' | 'event';
+  trigger_config: Record<string, any>;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ExternalIntegration {
+  id: string;
+  user_id: string;
+  service_name: string;
+  config: Record<string, any>;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgentMetric {
+  id: string;
+  agent_id: string;
+  user_id: string;
+  metric_type: 'usage_count' | 'response_time' | 'satisfaction_rating';
+  value: number;
+  metadata: Record<string, any>;
+  recorded_at: string;
+}

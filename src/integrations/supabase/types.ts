@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_conversations: {
+        Row: {
+          agent_id: string
+          context: Json | null
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          context?: Json | null
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          context?: Json | null
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_interactions: {
         Row: {
           agent_id: string
@@ -61,6 +91,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      agent_metrics: {
+        Row: {
+          agent_id: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          recorded_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          agent_id: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          recorded_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          agent_id?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          recorded_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
       }
       agents: {
         Row: {
@@ -134,6 +194,36 @@ export type Database = {
         }
         Relationships: []
       }
+      external_integrations: {
+        Row: {
+          active: boolean
+          config: Json
+          created_at: string
+          id: string
+          service_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          config?: Json
+          created_at?: string
+          id?: string
+          service_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          config?: Json
+          created_at?: string
+          id?: string
+          service_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -201,6 +291,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workflows: {
+        Row: {
+          active: boolean
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          trigger_config: Json | null
+          trigger_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
