@@ -79,13 +79,13 @@ const Dashboard = () => {
   const totalDocuments = documents?.length || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gradient-main">
       {/* Header with Gradient */}
-      <header className="border-b bg-card/50 backdrop-blur-sm shadow-card">
+      <header className="border-b border-border/50 bg-gradient-card backdrop-blur-sm shadow-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-lg bg-gradient-primary">
+              <div className="p-2 rounded-lg bg-gradient-primary shadow-glow">
                 <Bot className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -97,21 +97,21 @@ const Dashboard = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 bg-card/80 rounded-lg px-4 py-2 shadow-card">
-                <div className="p-1.5 rounded-full bg-gradient-primary">
+              <div className="flex items-center space-x-3 bg-gradient-card backdrop-blur-sm rounded-lg px-4 py-2 shadow-card border border-border/50">
+                <div className="p-1.5 rounded-full bg-gradient-primary shadow-glow">
                   {getRoleIcon(profile?.role)}
                 </div>
                 <div className="text-right">
-                  <span className="font-medium text-sm">{profile?.full_name}</span>
-                  <Badge variant="secondary" className="ml-2 text-xs">
+                  <span className="font-medium text-sm text-foreground">{profile?.full_name}</span>
+                  <Badge variant="secondary" className="ml-2 text-xs bg-gradient-secondary text-white border-0">
                     {getRoleDisplayName(profile?.role)}
                   </Badge>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" className="hover:bg-accent">
+              <Button variant="ghost" size="sm" className="hover:bg-accent/20 text-foreground">
                 <Settings className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleSignOut} className="hover:bg-destructive/10">
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="hover:bg-destructive/20 text-foreground">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>

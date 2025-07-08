@@ -8,35 +8,62 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Modern Dark Tech Background */
+    --background: 220 26% 8%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 26% 12%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 26% 12%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 220 26% 8%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14% 18%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 16%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 258 90% 66%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 14% 20%;
+    --input: 220 14% 16%;
+    --ring: 217 91% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Beautiful Gradient System */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(258 90% 66%));
+    --gradient-secondary: linear-gradient(135deg, hsl(258 90% 66%), hsl(292 84% 61%));
+    --gradient-accent: linear-gradient(135deg, hsl(292 84% 61%), hsl(340 82% 52%));
+    --gradient-business: linear-gradient(135deg, hsl(217 91% 60%), hsl(200 98% 39%));
+    --gradient-student: linear-gradient(135deg, hsl(258 90% 66%), hsl(280 100% 70%));
+    --gradient-founder: linear-gradient(135deg, hsl(340 82% 52%), hsl(14 100% 57%));
+    
+    /* Complex Background Gradients */
+    --gradient-main: radial-gradient(circle at 20% 80%, hsl(217 91% 60% / 0.3) 0%, transparent 50%),
+                     radial-gradient(circle at 80% 20%, hsl(258 90% 66% / 0.3) 0%, transparent 50%),
+                     radial-gradient(circle at 40% 40%, hsl(292 84% 61% / 0.2) 0%, transparent 50%),
+                     linear-gradient(135deg, hsl(220 26% 8%), hsl(220 26% 12%));
+    
+    --gradient-card: linear-gradient(135deg, hsl(220 26% 12% / 0.8), hsl(220 14% 18% / 0.6));
+    
+    /* Shadows with Color */
+    --shadow-elegant: 0 25px 50px -12px hsl(217 91% 60% / 0.25);
+    --shadow-glow: 0 0 40px hsl(258 90% 66% / 0.3);
+    --shadow-card: 0 8px 32px hsl(220 26% 8% / 0.3);
+    
+    /* Success, Warning, Error */
+    --success: 142 76% 36%;
+    --warning: 48 96% 53%;
+    --error: 0 84% 60%;
 
     --sidebar-background: 0 0% 98%;
 
