@@ -110,7 +110,12 @@ const Dashboard = () => {
                   </Badge>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" className="hover:bg-accent/20 text-foreground">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/settings')}
+                className="hover:bg-accent/20 text-foreground"
+              >
                 <Settings className="h-4 w-4" />
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="hover:bg-destructive/20 text-foreground">
