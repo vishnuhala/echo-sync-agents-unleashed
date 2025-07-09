@@ -38,7 +38,7 @@ export default function Help() {
               <div>
                 <h4 className="font-semibold mb-2">Important Notes:</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                  <li>Maximum 5 agents can be active at once</li>
+                  <li>Maximum 5 agents per role can be active</li>
                   <li>Deactivate unused agents to activate new ones</li>
                   <li>Each agent has specialized capabilities for your role</li>
                 </ul>

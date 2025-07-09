@@ -95,7 +95,7 @@ export default function Agents() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">AI Agents</h1>
           <p className="text-muted-foreground text-lg">
-            Activate and chat with specialized AI agents designed for {profile.role}s
+            Activate and chat with specialized AI agents designed for {profile.role}s (max 5 per role)
           </p>
         </div>
 

@@ -116,6 +116,7 @@ export function AgentsProvider({ children }: { children: ReactNode }) {
 
   const activateAgent = async (agentId: string) => {
     if (!user) return { error: new Error('No user logged in') };
+    if (!profile?.role) return { error: new Error('User role not set') };
 
     try {
       // Check if agent is already activated
@@ -135,19 +136,23 @@ export function AgentsProvider({ children }: { children: ReactNode }) {
         return { error: new Error('Agent is already activated') };
       }
 
-      // Check if user has reached the 5-agent limit
-      const { data: userAgentCount, error: countError } = await supabase
+      // Check if user has reached the 5-agent limit for their role
+      const { data: userAgentsForRole, error: countError } = await supabase
         .from('user_agents')
-        .select('id', { count: 'exact' })
-        .eq('user_id', user.id);
+        .select(`
+          id,
+          agents!inner(role)
+        `)
+        .eq('user_id', user.id)
+        .eq('agents.role', profile.role);
 
       if (countError) {
-        console.error('Error counting user agents:', countError);
+        console.error('Error counting user agents for role:', countError);
         return { error: countError };
       }
 
-      if (userAgentCount && userAgentCount.length >= 5) {
-        return { error: new Error('Maximum of 5 agents allowed. Please deactivate an agent first.') };
+      if (userAgentsForRole && userAgentsForRole.length >= 5) {
+        return { error: new Error(`Maximum of 5 ${profile.role} agents allowed. Please deactivate an agent first.`) };
       }
 
       const { error } = await supabase
