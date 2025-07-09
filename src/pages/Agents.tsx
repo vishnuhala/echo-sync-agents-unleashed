@@ -24,9 +24,10 @@ export default function Agents() {
     const { error } = await activateAgent(agentId);
     
     if (error) {
+      console.error('Agent activation error:', error);
       toast({
         title: "Error",
-        description: "Failed to activate agent. Please try again.",
+        description: error.message || "Failed to activate agent. Please try again.",
         variant: "destructive",
       });
     } else {
@@ -44,9 +45,10 @@ export default function Agents() {
     const { error } = await deactivateAgent(agentId);
     
     if (error) {
+      console.error('Agent deactivation error:', error);
       toast({
         title: "Error", 
-        description: "Failed to deactivate agent. Please try again.",
+        description: error.message || "Failed to deactivate agent. Please try again.",
         variant: "destructive",
       });
     } else {

@@ -117,56 +117,80 @@ export function AgentsProvider({ children }: { children: ReactNode }) {
   const activateAgent = async (agentId: string) => {
     if (!user) return { error: new Error('No user logged in') };
 
-    // Check if agent is already activated
-    const { data: existingAgent } = await supabase
-      .from('user_agents')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('agent_id', agentId)
-      .single();
+    try {
+      // Check if agent is already activated
+      const { data: existingAgent, error: checkError } = await supabase
+        .from('user_agents')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('agent_id', agentId)
+        .maybeSingle();
 
-    if (existingAgent) {
-      return { error: new Error('Agent is already activated') };
-    }
+      if (checkError) {
+        console.error('Error checking existing agent:', checkError);
+        return { error: checkError };
+      }
 
-    // Check if user has reached the 5-agent limit
-    const { data: userAgentCount } = await supabase
-      .from('user_agents')
-      .select('id', { count: 'exact' })
-      .eq('user_id', user.id);
+      if (existingAgent) {
+        return { error: new Error('Agent is already activated') };
+      }
 
-    if (userAgentCount && userAgentCount.length >= 5) {
-      return { error: new Error('Maximum of 5 agents allowed. Please deactivate an agent first.') };
-    }
+      // Check if user has reached the 5-agent limit
+      const { data: userAgentCount, error: countError } = await supabase
+        .from('user_agents')
+        .select('id', { count: 'exact' })
+        .eq('user_id', user.id);
 
-    const { error } = await supabase
-      .from('user_agents')
-      .insert({
-        user_id: user.id,
-        agent_id: agentId,
-      });
+      if (countError) {
+        console.error('Error counting user agents:', countError);
+        return { error: countError };
+      }
 
-    if (!error) {
+      if (userAgentCount && userAgentCount.length >= 5) {
+        return { error: new Error('Maximum of 5 agents allowed. Please deactivate an agent first.') };
+      }
+
+      const { error } = await supabase
+        .from('user_agents')
+        .insert({
+          user_id: user.id,
+          agent_id: agentId,
+        });
+
+      if (error) {
+        console.error('Error activating agent:', error);
+        return { error };
+      }
+
       await fetchUserAgents();
+      return { error: null };
+    } catch (error) {
+      console.error('Unexpected error in activateAgent:', error);
+      return { error };
     }
-
-    return { error };
   };
 
   const deactivateAgent = async (agentId: string) => {
     if (!user) return { error: new Error('No user logged in') };
 
-    const { error } = await supabase
-      .from('user_agents')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('agent_id', agentId);
+    try {
+      const { error } = await supabase
+        .from('user_agents')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('agent_id', agentId);
 
-    if (!error) {
+      if (error) {
+        console.error('Error deactivating agent:', error);
+        return { error };
+      }
+
       await fetchUserAgents();
+      return { error: null };
+    } catch (error) {
+      console.error('Unexpected error in deactivateAgent:', error);
+      return { error };
     }
-
-    return { error };
   };
 
   const sendMessage = async (agentId: string, message: string, documentId?: string) => {
