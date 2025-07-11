@@ -22,7 +22,7 @@ export default function Chat() {
   const { toast } = useToast();
 
   const [message, setMessage] = useState('');
-  const [selectedDocument, setSelectedDocument] = useState<string>('');
+  const [selectedDocument, setSelectedDocument] = useState<string>('none');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -73,7 +73,7 @@ export default function Chat() {
     const messageText = message;
     setMessage('');
 
-    const { error } = await sendMessage(agentId!, messageText, selectedDocument || undefined);
+    const { error } = await sendMessage(agentId!, messageText, selectedDocument && selectedDocument !== 'none' ? selectedDocument : undefined);
 
     if (error) {
       toast({
@@ -131,7 +131,7 @@ export default function Chat() {
                   <SelectValue placeholder="Select a document (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No document</SelectItem>
+                  <SelectItem value="none">No document</SelectItem>
                   {documents.map((doc) => (
                     <SelectItem key={doc.id} value={doc.id}>
                       <div className="flex items-center gap-2">
@@ -225,7 +225,7 @@ export default function Chat() {
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          {selectedDocument && (
+          {selectedDocument && selectedDocument !== 'none' && (
             <div className="mt-2">
               <Badge variant="secondary" className="text-xs">
                 <FileText className="h-3 w-3 mr-1" />
