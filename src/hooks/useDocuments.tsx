@@ -62,7 +62,7 @@ export function DocumentsProvider({ children }: { children: ReactNode }) {
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL
+      // Get the public URL for display (but store the file path for processing)
       const { data: { publicUrl } } = supabase.storage
         .from('documents')
         .getPublicUrl(fileName);
@@ -73,7 +73,7 @@ export function DocumentsProvider({ children }: { children: ReactNode }) {
         .insert({
           user_id: user.id,
           filename: file.name,
-          file_url: publicUrl,
+          file_url: publicUrl, // Store public URL for download links
           file_type: file.type,
           file_size: file.size,
         })
@@ -82,11 +82,11 @@ export function DocumentsProvider({ children }: { children: ReactNode }) {
 
       if (documentError) throw documentError;
 
-      // Process the document content (extract text)
+      // Process the document content (pass the file path for processing)
       await supabase.functions.invoke('process-document', {
         body: {
           documentId: documentData.id,
-          fileUrl: publicUrl,
+          filePath: fileName, // Pass the storage path directly
           fileType: file.type,
         },
       });

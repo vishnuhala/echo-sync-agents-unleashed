@@ -14,9 +14,9 @@ serve(async (req) => {
   }
 
   try {
-    const { documentId, fileUrl, fileType } = await req.json();
+    const { documentId, filePath, fileType } = await req.json();
 
-    if (!documentId || !fileUrl) {
+    if (!documentId || !filePath) {
       throw new Error('Missing required parameters');
     }
 
@@ -29,16 +29,25 @@ serve(async (req) => {
     let analysisResult = '';
 
     try {
-      console.log('Starting document processing for:', documentId, 'URL:', fileUrl, 'Type:', fileType);
+      console.log('Starting document processing for:', documentId, 'File Path:', filePath, 'File Type:', fileType);
       
-      // Download the file
-      const fileResponse = await fetch(fileUrl);
-      if (!fileResponse.ok) {
-        console.error('Failed to download file:', fileResponse.status, fileResponse.statusText);
-        throw new Error(`Failed to download file: ${fileResponse.status} ${fileResponse.statusText}`);
+      console.log('Downloading file from storage:', filePath);
+      
+      // Download the file directly from Supabase storage
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('documents')
+        .download(filePath);
+      
+      if (downloadError) {
+        console.error('Failed to download file from storage:', downloadError);
+        throw new Error(`Failed to download file: ${downloadError.message}`);
+      }
+      
+      if (!fileData) {
+        throw new Error('No file data received');
       }
 
-      const fileBuffer = await fileResponse.arrayBuffer();
+      const fileBuffer = await fileData.arrayBuffer();
       console.log('File downloaded successfully, size:', fileBuffer.byteLength);
       
       // Extract text based on file type
@@ -146,7 +155,7 @@ serve(async (req) => {
         stack: processingError.stack,
         documentId,
         fileType,
-        fileUrl
+        filePath
       });
       
       // Update document with a more helpful error message
