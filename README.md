@@ -1,73 +1,60 @@
-# Welcome to your Lovable project
+# 🤖 Echo Sync: Agents Unleashed
 
-## Project info
+A modular AI agent dashboard framework designed for seamless collaboration between AI agents and human users. Built with modern web technologies, this project leverages agent orchestration concepts and interactive UIs for real-time interaction, experimentation, and deployment.
 
-**URL**: https://lovable.dev/projects/b6e6d5ba-dfbf-4a0e-a1b4-775830a8c715
+---
 
-## How can I edit this code?
+## 🌟 Project Overview
 
-There are several ways of editing your application.
+**Echo Sync** enables:
 
-**Use Lovable**
+- 🧠 Integration of AI agents using modular interfaces
+- 🔁 Agent-to-Agent (A2A) communication workflows
+- 💬 Conversational interaction panels
+- 📊 Live dashboards and feedback loops
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b6e6d5ba-dfbf-4a0e-a1b4-775830a8c715) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🧰 Tech Stack
 
-**Use your preferred IDE**
+| Layer        | Technology         |
+|--------------|--------------------|
+| Frontend     | Vite + TypeScript  |
+| Styling      | TailwindCSS        |
+| Agent Logic  | ADK / LangGraph (optional) |
+| Build Tools  | PostCSS, ESLint    |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Getting Started
 
-Follow these steps:
+### 📦 Install dependencies
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+echo-sync-agents-unleashed/
+│
+├── public/                  # Static assets
+├── src/                     # Source code
+│   ├── agents/              # Agent definitions (if applicable)
+│   ├── components/          # UI components
+│   ├── pages/               # View/Route pages
+│   └── utils/               # Helper functions and logic
+├── index.html
+├── tailwind.config.ts
+├── vite.config.ts
+└── README.md
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+
+git clone <REPO_URL>
+cd echo-sync-agents-unleashed
+npm install
 npm run dev
-```
 
-**Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+npm run build
 
-**Use GitHub Codespaces**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## What technologies are used for this project?
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/b6e6d5ba-dfbf-4a0e-a1b4-775830a8c715) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
