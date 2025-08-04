@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAgents } from '@/hooks/useAgents';
+import { useA2A } from '@/hooks/useA2A';
 import { 
   ArrowRight, 
   Bot, 
@@ -20,47 +20,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-interface A2AMessage {
-  id: string;
-  fromAgent: string;
-  toAgent: string;
-  message: string;
-  response?: string;
-  status: 'pending' | 'processing' | 'completed' | 'error';
-  timestamp: Date;
-  type: 'request' | 'response' | 'broadcast';
-}
-
-interface A2AWorkflow {
-  id: string;
-  name: string;
-  description: string;
-  agents: string[];
-  steps: Array<{
-    agentId: string;
-    action: string;
-    nextAgent?: string;
-  }>;
-  status: 'draft' | 'active' | 'paused';
-}
-
 export const A2ACommunication = () => {
   const { agents, userAgents } = useAgents();
-  const [messages, setMessages] = useState<A2AMessage[]>([]);
-  const [workflows, setWorkflows] = useState<A2AWorkflow[]>([
-    {
-      id: '1',
-      name: 'Document Analysis Pipeline',
-      description: 'Multi-agent document processing and analysis',
-      agents: ['doc-processor', 'analyzer', 'summarizer'],
-      steps: [
-        { agentId: 'doc-processor', action: 'extract_text', nextAgent: 'analyzer' },
-        { agentId: 'analyzer', action: 'analyze_content', nextAgent: 'summarizer' },
-        { agentId: 'summarizer', action: 'generate_summary' }
-      ],
-      status: 'active'
-    }
-  ]);
+  const { messages, workflows, sendA2AMessage, executeA2AWorkflow, loading } = useA2A();
   const [selectedFromAgent, setSelectedFromAgent] = useState('');
   const [selectedToAgent, setSelectedToAgent] = useState('');
   const [messageText, setMessageText] = useState('');
@@ -70,7 +32,7 @@ export const A2ACommunication = () => {
     agents.some(a => a.id === ua.agent_id && a.active)
   ) || [];
 
-  const sendA2AMessage = async () => {
+  const handleSendMessage = async () => {
     if (!selectedFromAgent || !selectedToAgent || !messageText.trim()) {
       toast({
         title: "Missing Information",
@@ -80,91 +42,17 @@ export const A2ACommunication = () => {
       return;
     }
 
-    const newMessage: A2AMessage = {
-      id: Date.now().toString(),
-      fromAgent: selectedFromAgent,
-      toAgent: selectedToAgent,
-      message: messageText,
-      status: 'pending',
-      timestamp: new Date(),
-      type: 'request'
-    };
-
-    setMessages(prev => [newMessage, ...prev]);
-    setMessageText('');
-
-    // Simulate processing
-    setTimeout(() => {
-      setMessages(prev => prev.map(msg => 
-        msg.id === newMessage.id 
-          ? { ...msg, status: 'processing' }
-          : msg
-      ));
-    }, 1000);
-
-    setTimeout(() => {
-      setMessages(prev => prev.map(msg => 
-        msg.id === newMessage.id 
-          ? { 
-              ...msg, 
-              status: 'completed',
-              response: `Response from ${selectedToAgent}: I've processed your request successfully.`
-            }
-          : msg
-      ));
-    }, 3000);
-
-    toast({
-      title: "Message Sent",
-      description: "Agent-to-Agent communication initiated",
-    });
-  };
-
-  const executeWorkflow = async (workflowId: string) => {
-    const workflow = workflows.find(w => w.id === workflowId);
-    if (!workflow) return;
-
-    toast({
-      title: "Workflow Started",
-      description: `Executing ${workflow.name}`,
-    });
-
-    // Simulate workflow execution
-    for (let i = 0; i < workflow.steps.length; i++) {
-      const step = workflow.steps[i];
-      const nextStep = workflow.steps[i + 1];
-      
-      setTimeout(() => {
-        const workflowMessage: A2AMessage = {
-          id: `workflow-${Date.now()}-${i}`,
-          fromAgent: step.agentId,
-          toAgent: nextStep?.agentId || 'system',
-          message: `Executing ${step.action}`,
-          status: 'processing',
-          timestamp: new Date(),
-          type: 'request'
-        };
-        
-        setMessages(prev => [workflowMessage, ...prev]);
-
-        setTimeout(() => {
-          setMessages(prev => prev.map(msg => 
-            msg.id === workflowMessage.id 
-              ? { 
-                  ...msg, 
-                  status: 'completed',
-                  response: `${step.action} completed successfully`
-                }
-              : msg
-          ));
-        }, 2000);
-      }, i * 3000);
+    try {
+      await sendA2AMessage(selectedFromAgent, selectedToAgent, messageText);
+      setMessageText('');
+    } catch (error) {
+      console.error('Error sending A2A message:', error);
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending': return <Clock className="h-4 w-4 text-warning" />;
+      case 'sent': return <Clock className="h-4 w-4 text-warning" />;
       case 'processing': return <Zap className="h-4 w-4 text-primary animate-pulse" />;
       case 'completed': return <CheckCircle className="h-4 w-4 text-success" />;
       case 'error': return <AlertCircle className="h-4 w-4 text-destructive" />;
@@ -174,7 +62,7 @@ export const A2ACommunication = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-warning/10 text-warning border-warning/20';
+      case 'sent': return 'bg-warning/10 text-warning border-warning/20';
       case 'processing': return 'bg-primary/10 text-primary border-primary/20';
       case 'completed': return 'bg-success/10 text-success border-success/20';
       case 'error': return 'bg-destructive/10 text-destructive border-destructive/20';
@@ -182,11 +70,15 @@ export const A2ACommunication = () => {
     }
   };
 
+  if (loading) {
+    return <div>Loading A2A system...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Agent-to-Agent Communication</h2>
-        <p className="text-muted-foreground">Enable seamless communication between AI agents</p>
+        <p className="text-muted-foreground">Real-time communication between AI agents</p>
       </div>
 
       {/* Send Message */}
@@ -244,7 +136,7 @@ export const A2ACommunication = () => {
             rows={3}
           />
           <Button 
-            onClick={sendA2AMessage} 
+            onClick={handleSendMessage}
             className="bg-gradient-primary"
             disabled={!selectedFromAgent || !selectedToAgent || !messageText.trim()}
           >
@@ -273,13 +165,14 @@ export const A2ACommunication = () => {
                     <p className="text-sm text-muted-foreground">{workflow.description}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={getStatusColor(workflow.status)}>
-                      {workflow.status}
+                    <Badge variant="outline" className={workflow.is_active ? 'bg-success/10 text-success' : 'bg-muted/10'}>
+                      {workflow.is_active ? 'Active' : 'Inactive'}
                     </Badge>
                     <Button 
                       size="sm" 
-                      onClick={() => executeWorkflow(workflow.id)}
+                      onClick={() => executeA2AWorkflow(workflow.id)}
                       className="bg-gradient-primary"
+                      disabled={!workflow.is_active}
                     >
                       <Play className="h-4 w-4 mr-1" />
                       Execute
@@ -288,11 +181,17 @@ export const A2ACommunication = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
-                  {workflow.agents.length} agents • {workflow.steps.length} steps
+                  {workflow.agent_ids.length} agents
                 </div>
               </div>
             ))}
           </div>
+          {workflows.length === 0 && (
+            <div className="text-center py-8">
+              <Network className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No workflows configured yet</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -308,33 +207,33 @@ export const A2ACommunication = () => {
         <CardContent>
           {messages.length > 0 ? (
             <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className="p-4 rounded-lg border border-border/50 bg-muted/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Bot className="h-4 w-4" />
-                      <span className="font-medium">{message.fromAgent}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{message.toAgent}</span>
+              {messages.map((message) => {
+                const senderAgent = agents.find(a => a.id === message.sender_agent_id);
+                const receiverAgent = agents.find(a => a.id === message.receiver_agent_id);
+                
+                return (
+                  <div key={message.id} className="p-4 rounded-lg border border-border/50 bg-muted/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-4 w-4" />
+                        <span className="font-medium">{senderAgent?.name || 'Unknown'}</span>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{receiverAgent?.name || 'Unknown'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(message.status)}
+                        <Badge variant="outline" className={getStatusColor(message.status)}>
+                          {message.status}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(message.status)}
-                      <Badge variant="outline" className={getStatusColor(message.status)}>
-                        {message.status}
-                      </Badge>
-                    </div>
+                    <p className="text-sm mb-2">{message.content}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(message.created_at).toLocaleString()}
+                    </p>
                   </div>
-                  <p className="text-sm mb-2">{message.message}</p>
-                  {message.response && (
-                    <div className="mt-2 p-2 rounded bg-success/10 border border-success/20">
-                      <p className="text-sm text-success">{message.response}</p>
-                    </div>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {message.timestamp.toLocaleString()}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8">

@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      a2a_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          message_type: string | null
+          receiver_agent_id: string
+          sender_agent_id: string
+          status: string | null
+          updated_at: string
+          user_id: string
+          workflow_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          message_type?: string | null
+          receiver_agent_id: string
+          sender_agent_id: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          workflow_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string | null
+          receiver_agent_id?: string
+          sender_agent_id?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          workflow_id?: string | null
+        }
+        Relationships: []
+      }
+      a2a_workflows: {
+        Row: {
+          agent_ids: string[]
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          steps: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_ids: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          steps: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_ids?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          steps?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_conversations: {
         Row: {
           agent_id: string
@@ -219,6 +294,45 @@ export type Database = {
           created_at?: string
           id?: string
           service_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mcp_servers: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          last_connected_at: string | null
+          name: string
+          resources: Json | null
+          status: string | null
+          tools: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_connected_at?: string | null
+          name: string
+          resources?: Json | null
+          status?: string | null
+          tools?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_connected_at?: string | null
+          name?: string
+          resources?: Json | null
+          status?: string | null
+          tools?: Json | null
           updated_at?: string
           user_id?: string
         }
