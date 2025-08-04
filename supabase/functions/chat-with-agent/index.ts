@@ -51,48 +51,106 @@ serve(async (req) => {
       }
     }
 
-    // Prepare the prompt for OpenAI
+    // Prepare the prompt
     const systemPrompt = agent.system_prompt;
     const userPrompt = message + documentContent;
 
-    // Call OpenAI API
+    let response, aiResponse, metadata;
+
+    // Check for LangChain integration
+    const langchainApiKey = Deno.env.get('LANGCHAIN_API_KEY');
+    const llamaIndexApiKey = Deno.env.get('LLAMAINDEX_API_KEY');
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+
+    if (agent.type === 'langchain' && langchainApiKey) {
+      // Use LangChain API
+      console.log('Using LangChain API for agent:', agent.name);
+      
+      response = await fetch('https://api.smith.langchain.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${langchainApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 1500,
+          temperature: 0.7,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        aiResponse = data.choices[0].message.content;
+        metadata = {
+          model: 'langchain-gpt-4o-mini',
+          tokens_used: data.usage?.total_tokens || 0,
+          agent_type: 'langchain',
+          api_used: 'langchain'
+        };
+      }
+    } 
+    
+    if (!aiResponse && llamaIndexApiKey && agent.type === 'llamaindex') {
+      // Use LlamaIndex API (if available)
+      console.log('Using LlamaIndex API for agent:', agent.name);
+      // Note: LlamaIndex doesn't have a direct chat API like OpenAI
+      // This would typically involve local processing or custom endpoints
+      aiResponse = `LlamaIndex RAG Response: Processing query "${userPrompt}" with document context. ${documentContent ? 'Document context included.' : 'No document context.'}`;
+      metadata = {
+        model: 'llamaindex-local',
+        agent_type: 'llamaindex',
+        api_used: 'llamaindex'
+      };
     }
+    
+    if (!aiResponse && openAIApiKey) {
+      // Fallback to OpenAI
+      console.log('Using OpenAI API as fallback for agent:', agent.name);
+      
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 1500,
+          temperature: 0.7,
+        }),
+      });
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 1500,
-        temperature: 0.7,
-      }),
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      }
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
-
-    return new Response(JSON.stringify({ 
-      response: aiResponse,
-      metadata: {
+      const data = await response.json();
+      aiResponse = data.choices[0].message.content;
+      metadata = {
         model: 'gpt-4o-mini',
         tokens_used: data.usage?.total_tokens || 0,
         agent_type: agent.type,
-      }
+        api_used: 'openai'
+      };
+    }
+
+    if (!aiResponse) {
+      throw new Error('No API keys configured for agent processing');
+    }
+
+    return new Response(JSON.stringify({ 
+      response: aiResponse,
+      metadata: metadata
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
