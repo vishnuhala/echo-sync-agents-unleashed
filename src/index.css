@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Modern Dark Tech Background */
+    /* Robot-Inspired Dark Tech Background */
     --background: 220 26% 8%;
     --foreground: 210 40% 98%;
 
@@ -18,7 +18,7 @@ All colors MUST be HSL.
     --popover: 220 26% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 17 100% 56%;  /* Robot Orange */
     --primary-foreground: 220 26% 8%;
 
     --secondary: 220 14% 18%;
@@ -27,7 +27,7 @@ All colors MUST be HSL.
     --muted: 220 14% 16%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 258 90% 66%;
+    --accent: 17 100% 56%;  /* Robot Orange accent */
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84% 60%;
@@ -35,30 +35,31 @@ All colors MUST be HSL.
 
     --border: 220 14% 20%;
     --input: 220 14% 16%;
-    --ring: 217 91% 60%;
+    --ring: 17 100% 56%;
 
     --radius: 0.75rem;
 
-    /* Beautiful Gradient System */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(258 90% 66%));
-    --gradient-secondary: linear-gradient(135deg, hsl(258 90% 66%), hsl(292 84% 61%));
-    --gradient-accent: linear-gradient(135deg, hsl(292 84% 61%), hsl(340 82% 52%));
-    --gradient-business: linear-gradient(135deg, hsl(217 91% 60%), hsl(200 98% 39%));
-    --gradient-student: linear-gradient(135deg, hsl(258 90% 66%), hsl(280 100% 70%));
-    --gradient-founder: linear-gradient(135deg, hsl(340 82% 52%), hsl(14 100% 57%));
+    /* Robot-Inspired Gradient System */
+    --gradient-primary: linear-gradient(135deg, hsl(17 100% 56%), hsl(25 100% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(25 100% 50%), hsl(35 100% 45%));
+    --gradient-accent: linear-gradient(135deg, hsl(35 100% 45%), hsl(45 100% 40%));
+    --gradient-business: linear-gradient(135deg, hsl(17 100% 56%), hsl(200 98% 39%));
+    --gradient-student: linear-gradient(135deg, hsl(17 100% 56%), hsl(280 100% 70%));
+    --gradient-founder: linear-gradient(135deg, hsl(17 100% 56%), hsl(14 100% 57%));
+    --gradient-robot: linear-gradient(135deg, hsl(17 100% 56%), hsl(0 0% 90%));
     
-    /* Complex Background Gradients */
-    --gradient-main: radial-gradient(circle at 20% 80%, hsl(217 91% 60% / 0.3) 0%, transparent 50%),
-                     radial-gradient(circle at 80% 20%, hsl(258 90% 66% / 0.3) 0%, transparent 50%),
-                     radial-gradient(circle at 40% 40%, hsl(292 84% 61% / 0.2) 0%, transparent 50%),
+    /* Complex Robot Background Gradients */
+    --gradient-main: radial-gradient(circle at 20% 80%, hsl(17 100% 56% / 0.4) 0%, transparent 50%),
+                     radial-gradient(circle at 80% 20%, hsl(25 100% 50% / 0.3) 0%, transparent 50%),
+                     radial-gradient(circle at 40% 40%, hsl(35 100% 45% / 0.2) 0%, transparent 50%),
                      linear-gradient(135deg, hsl(220 26% 8%), hsl(220 26% 12%));
     
-    --gradient-card: linear-gradient(135deg, hsl(220 26% 12% / 0.8), hsl(220 14% 18% / 0.6));
+    --gradient-card: linear-gradient(135deg, hsl(220 26% 12% / 0.9), hsl(17 100% 56% / 0.05));
     
-    /* Shadows with Color */
-    --shadow-elegant: 0 25px 50px -12px hsl(217 91% 60% / 0.25);
-    --shadow-glow: 0 0 40px hsl(258 90% 66% / 0.3);
-    --shadow-card: 0 8px 32px hsl(220 26% 8% / 0.3);
+    /* Robot-Enhanced Shadows */
+    --shadow-elegant: 0 25px 50px -12px hsl(17 100% 56% / 0.3);
+    --shadow-glow: 0 0 40px hsl(17 100% 56% / 0.4);
+    --shadow-card: 0 8px 32px hsl(17 100% 56% / 0.1);
     
     /* Success, Warning, Error */
     --success: 142 76% 36%;

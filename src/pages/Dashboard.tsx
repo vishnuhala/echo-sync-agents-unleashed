@@ -322,24 +322,24 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/analytics')}>
+          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/mcp-editor')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-gradient-primary group-hover:scale-110 transition-transform duration-300">
-                  <MessageSquare className="h-5 w-5 text-white" />
+                  <Bot className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <div className="font-semibold">Analytics</div>
-                  <div className="text-xs text-muted-foreground">Performance Insights</div>
+                  <div className="font-semibold">MCP & Multi-Agent</div>
+                  <div className="text-xs text-muted-foreground">Advanced AI Platform</div>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Track agent performance</div>
-                <div className="text-xs text-muted-foreground">Usage patterns & trends</div>
+                <div className="text-sm text-muted-foreground">MCP, A2A, RAG & Agent Creator</div>
+                <div className="text-xs text-muted-foreground">LangChain • ADK • LlamaIndex</div>
                 <Button variant="outline" size="sm" className="w-full mt-3 group-hover:bg-primary group-hover:text-white transition-colors">
-                  View Metrics →
+                  Open Platform →
                 </Button>
               </div>
             </CardContent>
