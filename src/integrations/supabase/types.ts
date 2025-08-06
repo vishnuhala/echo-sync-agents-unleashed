@@ -374,6 +374,44 @@ export type Database = {
         }
         Relationships: []
       }
+      rag_queries: {
+        Row: {
+          created_at: string
+          id: string
+          query: string
+          response_time_ms: number | null
+          results: Json
+          user_id: string
+          vector_index_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query: string
+          response_time_ms?: number | null
+          results?: Json
+          user_id: string
+          vector_index_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query?: string
+          response_time_ms?: number | null
+          results?: Json
+          user_id?: string
+          vector_index_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rag_queries_vector_index_id_fkey"
+            columns: ["vector_index_id"]
+            isOneToOne: false
+            referencedRelation: "vector_indexes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_agents: {
         Row: {
           activated_at: string
@@ -405,6 +443,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vector_indexes: {
+        Row: {
+          config: Json
+          created_at: string
+          description: string | null
+          documents_count: number
+          embedding_model: string
+          id: string
+          last_updated_at: string
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+          vectors_count: number
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          documents_count?: number
+          embedding_model?: string
+          id?: string
+          last_updated_at?: string
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          vectors_count?: number
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          documents_count?: number
+          embedding_model?: string
+          id?: string
+          last_updated_at?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vectors_count?: number
+        }
+        Relationships: []
       }
       workflows: {
         Row: {

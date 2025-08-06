@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useRAG } from '@/hooks/useRAG';
 import { 
   Database, 
   Upload, 
@@ -22,75 +23,36 @@ import {
   Plus
 } from 'lucide-react';
 
-interface VectorIndex {
-  id: string;
-  name: string;
-  description: string;
-  documentsCount: number;
-  vectorsCount: number;
-  status: 'building' | 'ready' | 'error';
-  lastUpdated: Date;
-  embeddingModel: string;
-}
-
-interface RAGQuery {
-  id: string;
-  query: string;
-  results: Array<{
-    content: string;
-    source: string;
-    score: number;
-  }>;
-  timestamp: Date;
-}
+// Types imported from useRAG hook
 
 export const RAGSystem = () => {
   const { documents } = useDocuments();
-  const [vectorIndexes, setVectorIndexes] = useState<VectorIndex[]>([
-    {
-      id: '1',
-      name: 'General Knowledge Base',
-      description: 'Main document collection for general queries',
-      documentsCount: 15,
-      vectorsCount: 1250,
-      status: 'ready',
-      lastUpdated: new Date(),
-      embeddingModel: 'text-embedding-3-small'
-    },
-    {
-      id: '2',
-      name: 'Technical Documentation',
-      description: 'Technical specs and API documentation',
-      documentsCount: 8,
-      vectorsCount: 640,
-      status: 'building',
-      lastUpdated: new Date(),
-      embeddingModel: 'text-embedding-3-large'
-    }
-  ]);
-  const [queryHistory, setQueryHistory] = useState<RAGQuery[]>([]);
+  const { 
+    vectorIndexes, 
+    queryHistory, 
+    loading,
+    createVectorIndex,
+    performRAGQuery,
+    rebuildVectorIndex,
+    indexDocuments
+  } = useRAG();
+  
   const [currentQuery, setCurrentQuery] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState('1');
+  const [selectedIndex, setSelectedIndex] = useState('');
   const [isQuerying, setIsQuerying] = useState(false);
-  const [buildProgress, setBuildProgress] = useState(0);
+  const [newIndexName, setNewIndexName] = useState('');
+  const [newIndexDescription, setNewIndexDescription] = useState('');
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const { toast } = useToast();
 
+  // Set first available index as selected
   useEffect(() => {
-    // Simulate building progress
-    const buildingIndex = vectorIndexes.find(idx => idx.status === 'building');
-    if (buildingIndex && buildProgress < 100) {
-      const timer = setTimeout(() => {
-        setBuildProgress(prev => Math.min(prev + 10, 100));
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (buildProgress === 100) {
-      setVectorIndexes(prev => prev.map(idx => 
-        idx.status === 'building' ? { ...idx, status: 'ready' } : idx
-      ));
+    if (vectorIndexes.length > 0 && !selectedIndex) {
+      setSelectedIndex(vectorIndexes[0].id);
     }
-  }, [buildProgress, vectorIndexes]);
+  }, [vectorIndexes, selectedIndex]);
 
-  const performRAGQuery = async () => {
+  const handlePerformQuery = async () => {
     if (!currentQuery.trim()) {
       toast({
         title: "Empty Query",
@@ -100,79 +62,53 @@ export const RAGSystem = () => {
       return;
     }
 
+    if (!selectedIndex) {
+      toast({
+        title: "No Index Selected",
+        description: "Please select a vector index first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsQuerying(true);
 
-    // Simulate RAG query
-    setTimeout(() => {
-      const mockResults = [
-        {
-          content: "This is a relevant excerpt from the document that matches your query about AI agents and their capabilities.",
-          source: "AI_Agents_Guide.pdf",
-          score: 0.95
-        },
-        {
-          content: "Another relevant section discussing the implementation of multi-agent systems and their communication protocols.",
-          source: "Multi_Agent_Systems.pdf", 
-          score: 0.87
-        },
-        {
-          content: "Additional context about agent frameworks and their integration with various tools and APIs.",
-          source: "Agent_Framework_Docs.pdf",
-          score: 0.82
-        }
-      ];
-
-      const newQuery: RAGQuery = {
-        id: Date.now().toString(),
-        query: currentQuery,
-        results: mockResults,
-        timestamp: new Date()
-      };
-
-      setQueryHistory(prev => [newQuery, ...prev]);
+    try {
+      await performRAGQuery(currentQuery, selectedIndex);
       setCurrentQuery('');
+    } catch (error) {
+      console.error('Query error:', error);
+    } finally {
       setIsQuerying(false);
+    }
+  };
 
+  const handleCreateIndex = async () => {
+    if (!newIndexName.trim()) {
       toast({
-        title: "Query Complete",
-        description: `Found ${mockResults.length} relevant results`,
+        title: "Invalid Name",
+        description: "Please enter an index name",
+        variant: "destructive",
       });
-    }, 2000);
+      return;
+    }
+
+    try {
+      await createVectorIndex(newIndexName, newIndexDescription);
+      setNewIndexName('');
+      setNewIndexDescription('');
+      setShowCreateForm(false);
+    } catch (error) {
+      console.error('Create index error:', error);
+    }
   };
 
-  const rebuildIndex = async (indexId: string) => {
-    setVectorIndexes(prev => prev.map(idx => 
-      idx.id === indexId 
-        ? { ...idx, status: 'building', lastUpdated: new Date() }
-        : idx
-    ));
-    setBuildProgress(0);
-
-    toast({
-      title: "Rebuilding Index",
-      description: "Vector index rebuild started",
-    });
-  };
-
-  const createNewIndex = () => {
-    const newIndex: VectorIndex = {
-      id: Date.now().toString(),
-      name: `Index ${vectorIndexes.length + 1}`,
-      description: 'New vector index',
-      documentsCount: 0,
-      vectorsCount: 0,
-      status: 'building',
-      lastUpdated: new Date(),
-      embeddingModel: 'text-embedding-3-small'
-    };
-
-    setVectorIndexes(prev => [...prev, newIndex]);
-    setBuildProgress(0);
-
-    toast({
-      title: "Index Created",
-      description: "New vector index is being built",
-    });
+  const handleIndexDocuments = async (indexId: string, docIds: string[]) => {
+    try {
+      await indexDocuments(indexId, docIds);
+    } catch (error) {
+      console.error('Index documents error:', error);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -200,7 +136,7 @@ export const RAGSystem = () => {
           <h2 className="text-2xl font-bold">RAG System (LlamaIndex)</h2>
           <p className="text-muted-foreground">Retrieval-Augmented Generation with vector search</p>
         </div>
-        <Button onClick={createNewIndex} className="bg-gradient-primary">
+        <Button onClick={() => setShowCreateForm(true)} className="bg-gradient-primary">
           <Plus className="h-4 w-4 mr-2" />
           New Index
         </Button>
@@ -216,6 +152,23 @@ export const RAGSystem = () => {
           <CardDescription>Search through your document knowledge base</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {vectorIndexes.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Select Vector Index:</label>
+              <select
+                value={selectedIndex}
+                onChange={(e) => setSelectedIndex(e.target.value)}
+                className="w-full p-2 border border-border rounded-md bg-background"
+              >
+                <option value="">Select an index...</option>
+                {vectorIndexes.map((index) => (
+                  <option key={index.id} value={index.id}>
+                    {index.name} ({index.status})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex gap-2">
             <Textarea
               placeholder="Enter your query to search through documents..."
@@ -225,8 +178,8 @@ export const RAGSystem = () => {
               className="flex-1"
             />
             <Button 
-              onClick={performRAGQuery}
-              disabled={isQuerying || !currentQuery.trim()}
+              onClick={handlePerformQuery}
+              disabled={isQuerying || !currentQuery.trim() || !selectedIndex}
               className="bg-gradient-primary self-end"
             >
               <Search className="h-4 w-4 mr-2" />
@@ -235,6 +188,46 @@ export const RAGSystem = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Index Form */}
+      {showCreateForm && (
+        <Card className="bg-gradient-card border-primary/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Create Vector Index
+            </CardTitle>
+            <CardDescription>Create a new vector index for your documents</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Index Name</label>
+              <Input
+                placeholder="Enter index name..."
+                value={newIndexName}
+                onChange={(e) => setNewIndexName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Description</label>
+              <Textarea
+                placeholder="Enter index description..."
+                value={newIndexDescription}
+                onChange={(e) => setNewIndexDescription(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleCreateIndex} className="bg-gradient-primary">
+                Create Index
+              </Button>
+              <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Vector Indexes */}
       <Card className="bg-gradient-card border-primary/10">
@@ -247,65 +240,69 @@ export const RAGSystem = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {vectorIndexes.map((index) => (
-              <div key={index.id} className="p-4 rounded-lg border border-border/50 bg-muted/30">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-gradient-primary">
-                      <Database className="h-4 w-4 text-white" />
+            {vectorIndexes.length === 0 ? (
+              <div className="text-center py-8">
+                <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Vector Indexes</h3>
+                <p className="text-muted-foreground mb-4">
+                  Create your first vector index to start using RAG
+                </p>
+                <Button onClick={() => setShowCreateForm(true)} className="bg-gradient-primary">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Index
+                </Button>
+              </div>
+            ) : (
+              vectorIndexes.map((index) => (
+                <div key={index.id} className="p-4 rounded-lg border border-border/50 bg-muted/30">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-gradient-primary">
+                        <Database className="h-4 w-4 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">{index.name}</h4>
+                        <p className="text-sm text-muted-foreground">{index.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={getStatusColor(index.status)}>
+                        {getStatusIcon(index.status)}
+                        <span className="ml-1 capitalize">{index.status}</span>
+                      </Badge>
+                      {index.status === 'ready' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => rebuildVectorIndex(index.id)}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Documents:</span>
+                      <div className="font-medium">{index.documents_count}</div>
                     </div>
                     <div>
-                      <h4 className="font-semibold">{index.name}</h4>
-                      <p className="text-sm text-muted-foreground">{index.description}</p>
+                      <span className="text-muted-foreground">Vectors:</span>
+                      <div className="font-medium">{index.vectors_count.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Model:</span>
+                      <div className="font-medium">{index.embedding_model}</div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Updated:</span>
+                      <div className="font-medium">{new Date(index.last_updated_at).toLocaleDateString()}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={getStatusColor(index.status)}>
-                      {getStatusIcon(index.status)}
-                      <span className="ml-1 capitalize">{index.status}</span>
-                    </Badge>
-                    {index.status === 'ready' && (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => rebuildIndex(index.id)}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
                 </div>
-
-                {index.status === 'building' && (
-                  <div className="mb-3">
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span>Building index...</span>
-                      <span>{buildProgress}%</span>
-                    </div>
-                    <Progress value={buildProgress} className="h-2" />
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Documents:</span>
-                    <div className="font-medium">{index.documentsCount}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Vectors:</span>
-                    <div className="font-medium">{index.vectorsCount.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Model:</span>
-                    <div className="font-medium">{index.embeddingModel}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Updated:</span>
-                    <div className="font-medium">{index.lastUpdated.toLocaleDateString()}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
@@ -326,9 +323,9 @@ export const RAGSystem = () => {
                 <div key={query.id} className="border border-border/50 rounded-lg p-4 bg-muted/30">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-semibold">Query: "{query.query}"</h4>
-                    <span className="text-sm text-muted-foreground">
-                      {query.timestamp.toLocaleString()}
-                    </span>
+                     <span className="text-sm text-muted-foreground">
+                       {new Date(query.created_at).toLocaleString()}
+                     </span>
                   </div>
                   
                   <div className="space-y-3">
@@ -378,7 +375,12 @@ export const RAGSystem = () => {
                         Ready
                       </Badge>
                     </div>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleIndexDocuments(selectedIndex || vectorIndexes[0]?.id, [doc.id])}
+                      disabled={!selectedIndex && vectorIndexes.length === 0}
+                    >
                       <Download className="h-4 w-4 mr-1" />
                       Index
                     </Button>
