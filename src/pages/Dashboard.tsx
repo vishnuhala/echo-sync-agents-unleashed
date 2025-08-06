@@ -1,7 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useAgents } from '@/hooks/useAgents';
 import { useDocuments } from '@/hooks/useDocuments';
-import { useIntegrations } from '@/hooks/useIntegrations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,15 +15,13 @@ import {
   FileText,
   MessageSquare,
   Zap,
-  LogOut,
-  Plug
+  LogOut
 } from 'lucide-react';
 
 const Dashboard = () => {
   const { profile, signOut } = useAuth();
   const { agents, userAgents, loading: agentsLoading } = useAgents();
   const { documents, loading: documentsLoading } = useDocuments();
-  const { integrations, loading: integrationsLoading } = useIntegrations();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -82,7 +79,6 @@ const Dashboard = () => {
   ).length || 0;
   const availableAgents = agents?.filter(a => a.role === profile?.role).length || 0;
   const totalDocuments = documents?.length || 0;
-  const totalIntegrations = integrations?.length || 0;
 
   return (
     <div className="min-h-screen bg-gradient-main">
@@ -184,7 +180,7 @@ const Dashboard = () => {
         </div>
 
         {/* Enhanced Quick Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-card to-card/50 shadow-card border-0 hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
@@ -211,21 +207,6 @@ const Dashboard = () => {
               <div className="text-2xl font-bold">{totalDocuments}</div>
               <p className="text-xs text-muted-foreground">
                 Files uploaded for analysis
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-card to-card/50 shadow-card border-0 hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Integrations</CardTitle>
-              <div className="p-2 rounded-lg bg-gradient-primary">
-                <Plug className="h-4 w-4 text-white" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalIntegrations}</div>
-              <p className="text-xs text-muted-foreground">
-                External services connected
               </p>
             </CardContent>
           </Card>
@@ -262,7 +243,7 @@ const Dashboard = () => {
         </div>
 
         {/* Enhanced Quick Actions with Beautiful Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/agents')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
@@ -336,32 +317,6 @@ const Dashboard = () => {
                 <div className="text-xs text-muted-foreground">Schedule & trigger agents</div>
                 <Button variant="outline" size="sm" className="w-full mt-3 group-hover:bg-primary group-hover:text-white transition-colors">
                   Create Workflow →
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/integrations')}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-gradient-primary group-hover:scale-110 transition-transform duration-300">
-                  <Plug className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold">Integrations</div>
-                  <div className="text-xs text-muted-foreground">External Services</div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Connected:</span>
-                  <span className="font-medium">{totalIntegrations}</span>
-                </div>
-                <div className="text-xs text-muted-foreground">APIs, MCP, A2A & External Tools</div>
-                <Button variant="outline" size="sm" className="w-full mt-3 group-hover:bg-primary group-hover:text-white transition-colors">
-                  Manage Integrations →
                 </Button>
               </div>
             </CardContent>
