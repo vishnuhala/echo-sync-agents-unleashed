@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Bot, 
   Plus, 
@@ -117,14 +119,38 @@ export const AgentCreator = () => {
   const createFromTemplate = async (template: AgentTemplate) => {
     setIsCreating(true);
     
-    // Simulate agent creation
-    setTimeout(() => {
-      toast({
-        title: "Agent Created",
-        description: `${template.name} has been created successfully`,
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Create agent in database
+      const { data, error } = await supabase.functions.invoke('create-agent', {
+        body: {
+          name: template.name,
+          description: template.description,
+          framework: template.framework,
+          capabilities: template.capabilities,
+          ragEnabled: template.ragEnabled,
+          userId: user.id
+        }
       });
+
+      if (error) throw error;
+
+      toast({
+        title: "Agent Created Successfully!",
+        description: `${template.name} is now active and ready to chat`,
+      });
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create agent. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsCreating(false);
-    }, 2000);
+    }
   };
 
   const createCustomAgent = async () => {
@@ -139,13 +165,34 @@ export const AgentCreator = () => {
 
     setIsCreating(true);
     
-    // Simulate agent creation
-    setTimeout(() => {
-      toast({
-        title: "Custom Agent Created",
-        description: `${newAgent.name} has been created successfully`,
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Create custom agent in database
+      const { data, error } = await supabase.functions.invoke('create-agent', {
+        body: {
+          name: newAgent.name,
+          description: newAgent.description,
+          framework: newAgent.framework,
+          role: newAgent.role,
+          capabilities: newAgent.capabilities,
+          ragEnabled: newAgent.ragEnabled,
+          tools: newAgent.tools,
+          systemPrompt: newAgent.systemPrompt,
+          model: newAgent.model,
+          temperature: newAgent.temperature,
+          userId: user.id
+        }
       });
-      setIsCreating(false);
+
+      if (error) throw error;
+
+      toast({
+        title: "Custom Agent Created Successfully!",
+        description: `${newAgent.name} is now active and ready to chat`,
+      });
+      
       // Reset form
       setNewAgent({
         name: '',
@@ -159,7 +206,16 @@ export const AgentCreator = () => {
         model: 'gpt-4o-mini',
         temperature: 0.7
       });
-    }, 2000);
+    } catch (error) {
+      console.error('Error creating custom agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create custom agent. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const toggleCapability = (capability: string) => {

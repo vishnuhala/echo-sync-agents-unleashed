@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MCPServerManager } from '@/components/mcp/MCPServer';
+import { MCPServerList } from '@/components/mcp/MCPServerList';
 import { A2ACommunication } from '@/components/agents/A2ACommunication';
 import { AgentCreator } from '@/components/agents/AgentCreator';
 import { RAGSystem } from '@/components/rag/RAGSystem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Server, Users, Bot, Database } from 'lucide-react';
+import { Server, Users, Bot, Database, List } from 'lucide-react';
 
 export default function MCPEditor() {
   return (
@@ -20,11 +21,15 @@ export default function MCPEditor() {
           </p>
         </div>
 
-        <Tabs defaultValue="mcp" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur-sm">
+        <Tabs defaultValue="servers" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 bg-card/50 backdrop-blur-sm">
+            <TabsTrigger value="servers" className="flex items-center gap-2">
+              <List className="h-4 w-4" />
+              Open Source MCP
+            </TabsTrigger>
             <TabsTrigger value="mcp" className="flex items-center gap-2">
               <Server className="h-4 w-4" />
-              MCP Servers
+              My MCP Servers
             </TabsTrigger>
             <TabsTrigger value="a2a" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -39,6 +44,10 @@ export default function MCPEditor() {
               RAG System
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="servers" className="space-y-6">
+            <MCPServerList />
+          </TabsContent>
 
           <TabsContent value="mcp" className="space-y-6">
             <MCPServerManager />
