@@ -5,8 +5,9 @@ import { MCPServerList } from '@/components/mcp/MCPServerList';
 import { A2ACommunication } from '@/components/agents/A2ACommunication';
 import { AgentCreator } from '@/components/agents/AgentCreator';
 import { RAGSystem } from '@/components/rag/RAGSystem';
+import { ComprehensiveGuide } from '@/components/guides/ComprehensiveGuide';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Server, Users, Bot, Database, List } from 'lucide-react';
+import { Server, Users, Bot, Database, List, BookOpen } from 'lucide-react';
 
 export default function MCPEditor() {
   return (
@@ -21,8 +22,12 @@ export default function MCPEditor() {
           </p>
         </div>
 
-        <Tabs defaultValue="servers" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-card/50 backdrop-blur-sm">
+        <Tabs defaultValue="guide" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6 bg-card/50 backdrop-blur-sm">
+            <TabsTrigger value="guide" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Complete Guide
+            </TabsTrigger>
             <TabsTrigger value="servers" className="flex items-center gap-2">
               <List className="h-4 w-4" />
               Open Source MCP
@@ -44,6 +49,10 @@ export default function MCPEditor() {
               RAG System
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="guide" className="space-y-6">
+            <ComprehensiveGuide />
+          </TabsContent>
 
           <TabsContent value="servers" className="space-y-6">
             <MCPServerList />

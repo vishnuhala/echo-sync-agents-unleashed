@@ -56,7 +56,7 @@ Be helpful, accurate, and professional in all interactions.`;
       .insert({
         name,
         type: framework,
-        role: 'assistant', // This maps to the role enum in the agents table
+        role: 'admin', // Use valid enum value from the database
         description,
         system_prompt: generatedSystemPrompt,
         active: true
