@@ -205,6 +205,17 @@ export const useA2A = () => {
     }
   };
 
+  // Incremental realtime apply for messages
+  const applyMessageChange = (payload: any) => {
+    const { eventType, new: newRow, old: oldRow } = payload || {};
+    setMessages((prev) => {
+      if (eventType === 'INSERT' && newRow) return [newRow as A2AMessage, ...prev];
+      if (eventType === 'UPDATE' && newRow) return prev.map((m) => (m.id === newRow.id ? (newRow as A2AMessage) : m));
+      if (eventType === 'DELETE' && oldRow) return prev.filter((m) => m.id !== oldRow.id);
+      return prev;
+    });
+  };
+
   // Set up real-time subscriptions
   useEffect(() => {
     fetchMessages();
@@ -220,8 +231,13 @@ export const useA2A = () => {
           schema: 'public',
           table: 'a2a_messages'
         },
-        () => {
-          fetchMessages();
+        (payload) => {
+          try {
+            applyMessageChange(payload);
+          } catch (e) {
+            console.warn('Realtime apply failed, refetching.', e);
+            fetchMessages();
+          }
         }
       )
       .subscribe();

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAgents } from '@/hooks/useAgents';
 import { useA2A } from '@/hooks/useA2A';
+import { useMCP } from '@/hooks/useMCP';
 import { 
   ArrowRight, 
   Bot, 
@@ -23,9 +24,14 @@ import {
 export const A2ACommunication = () => {
   const { agents, userAgents } = useAgents();
   const { messages, workflows, sendA2AMessage, executeA2AWorkflow, loading } = useA2A();
+  const { servers } = useMCP();
   const [selectedFromAgent, setSelectedFromAgent] = useState('');
   const [selectedToAgent, setSelectedToAgent] = useState('');
+  const [mode, setMode] = useState<'direct' | 'tool'>('direct');
   const [messageText, setMessageText] = useState('');
+  const [selectedServerId, setSelectedServerId] = useState('');
+  const [selectedToolName, setSelectedToolName] = useState('');
+  const [toolParams, setToolParams] = useState<string>('{}');
   const { toast } = useToast();
 
   const activeAgents = userAgents?.filter(ua => 
@@ -33,18 +39,39 @@ export const A2ACommunication = () => {
   ) || [];
 
   const handleSendMessage = async () => {
-    if (!selectedFromAgent || !selectedToAgent || !messageText.trim()) {
+    if (!selectedFromAgent || !selectedToAgent) {
       toast({
         title: "Missing Information",
-        description: "Please select agents and enter a message",
+        description: "Please select both source and target agents",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      await sendA2AMessage(selectedFromAgent, selectedToAgent, messageText);
-      setMessageText('');
+      if (mode === 'direct') {
+        if (!messageText.trim()) {
+          toast({ title: 'Missing Message', description: 'Please enter a message', variant: 'destructive' });
+          return;
+        }
+        await sendA2AMessage(selectedFromAgent, selectedToAgent, messageText, 'direct');
+        setMessageText('');
+      } else {
+        if (!selectedServerId || !selectedToolName) {
+          toast({ title: 'Missing Tool Details', description: 'Select server and tool', variant: 'destructive' });
+          return;
+        }
+        let paramsObj: any = {};
+        try {
+          paramsObj = toolParams.trim() ? JSON.parse(toolParams) : {};
+        } catch (e) {
+          toast({ title: 'Invalid JSON', description: 'Fix parameters JSON', variant: 'destructive' });
+          return;
+        }
+        const payload = JSON.stringify({ serverId: selectedServerId, toolName: selectedToolName, parameters: paramsObj });
+        await sendA2AMessage(selectedFromAgent, selectedToAgent, payload, 'tool');
+        setToolParams('{}');
+      }
     } catch (error) {
       console.error('Error sending A2A message:', error);
     }
@@ -129,19 +156,77 @@ export const A2ACommunication = () => {
               </Select>
             </div>
           </div>
-          <Textarea
-            placeholder="Enter message for agent communication..."
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            rows={3}
-          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Intent</label>
+              <Select value={mode} onValueChange={(v) => setMode(v as 'direct' | 'tool')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose intent" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="direct">Direct Message</SelectItem>
+                  <SelectItem value="tool">Execute MCP Tool</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {mode === 'direct' ? (
+            <Textarea
+              placeholder="Enter message for agent communication..."
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              rows={3}
+            />
+          ) : (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">MCP Server</label>
+                  <Select value={selectedServerId} onValueChange={(v) => { setSelectedServerId(v); setSelectedToolName(''); }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select server" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {servers.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Tool</label>
+                  <Select value={selectedToolName} onValueChange={setSelectedToolName}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select tool" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {servers.find(s => s.id === selectedServerId)?.tools?.map((t) => (
+                        <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Textarea
+                placeholder='Parameters JSON, e.g. {"query":"apple earnings"}'
+                value={toolParams}
+                onChange={(e) => setToolParams(e.target.value)}
+                rows={4}
+              />
+            </div>
+          )}
+
           <Button 
             onClick={handleSendMessage}
             className="bg-gradient-primary"
-            disabled={!selectedFromAgent || !selectedToAgent || !messageText.trim()}
+            disabled={
+              !selectedFromAgent || !selectedToAgent || (mode === 'direct' ? !messageText.trim() : !(selectedServerId && selectedToolName))
+            }
           >
             <ArrowRight className="h-4 w-4 mr-2" />
-            Send Message
+            {mode === 'direct' ? 'Send Message' : 'Send Tool Task'}
           </Button>
         </CardContent>
       </Card>
