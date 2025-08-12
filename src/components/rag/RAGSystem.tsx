@@ -40,6 +40,7 @@ export const RAGSystem = () => {
   const [currentQuery, setCurrentQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState('');
   const [isQuerying, setIsQuerying] = useState(false);
+  const [lastResults, setLastResults] = useState<Array<{ content: string; source: string; score: number }>>([]);
   const [newIndexName, setNewIndexName] = useState('');
   const [newIndexDescription, setNewIndexDescription] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -74,7 +75,11 @@ export const RAGSystem = () => {
     setIsQuerying(true);
 
     try {
-      await performRAGQuery(currentQuery, selectedIndex);
+      const res = await performRAGQuery(currentQuery, selectedIndex);
+      const resultsArray = Array.isArray((res as any)?.results)
+        ? ((res as any).results as Array<{ content: string; source: string; score: number }>)
+        : [];
+      setLastResults(resultsArray);
       setCurrentQuery('');
     } catch (error) {
       console.error('Query error:', error);
@@ -186,8 +191,42 @@ export const RAGSystem = () => {
               {isQuerying ? 'Searching...' : 'Search'}
             </Button>
           </div>
+          {lastResults.length === 0 && currentQuery.trim() === '' && (
+            <p className="text-sm text-muted-foreground">Tip: Select an index above, then ask about your imported page. Results will appear below.</p>
+          )}
         </CardContent>
       </Card>
+
+      {/* Latest Results (live) */}
+      {lastResults.length > 0 && (
+        <Card className="bg-gradient-card border-primary/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5" />
+              Latest Results
+            </CardTitle>
+            <CardDescription>Answers from your most recent search</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {lastResults.map((result, i) => (
+                <div key={i} className="p-3 rounded-lg bg-card border border-border/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-sm">{result.source}</span>
+                    </div>
+                    <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                      {(result.score * 100).toFixed(1)}% match
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{result.content}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create Index Form */}
       {showCreateForm && (
@@ -384,8 +423,8 @@ export const RAGSystem = () => {
                       onClick={() => handleIndexDocuments(selectedIndex || vectorIndexes[0]?.id, [doc.id])}
                       disabled={!selectedIndex && vectorIndexes.length === 0}
                     >
-                      <Download className="h-4 w-4 mr-1" />
-                      Index
+                      <Zap className="h-4 w-4 mr-1" />
+                      Index to Selected
                     </Button>
                   </div>
                 ))}
