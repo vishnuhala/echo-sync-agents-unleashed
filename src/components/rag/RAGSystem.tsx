@@ -359,14 +359,17 @@ export const RAGSystem = () => {
             Document Integration
           </CardTitle>
           <CardDescription>
-            Connect your uploaded documents ({documents?.length || 0} available)
+            Connect your uploaded documents ({documents?.length || 0} available) or import from a URL (web scraping)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          {/* Import from URL */}
+          <ImportFromUrl selectedIndex={selectedIndex} />
+
+          <div className="grid gap-4 mt-6">
             {documents && documents.length > 0 ? (
               <div className="space-y-2">
-                  {documents.slice(0, 5).map((doc) => (
+                {documents.slice(0, 5).map((doc) => (
                   <div key={doc.id} className="flex items-center justify-between p-2 rounded border border-border/50">
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
@@ -397,7 +400,7 @@ export const RAGSystem = () => {
                 <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Documents</h3>
                 <p className="text-muted-foreground mb-4">
-                  Upload documents to build your RAG knowledge base
+                  Upload documents or import from a URL to build your RAG knowledge base
                 </p>
                 <Button className="bg-gradient-primary">
                   <Upload className="h-4 w-4 mr-2" />
@@ -408,6 +411,54 @@ export const RAGSystem = () => {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+};
+
+// Lightweight URL import component inside this file to avoid large changes
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+
+const ImportFromUrl = ({ selectedIndex }: { selectedIndex: string }) => {
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  const handleImport = async () => {
+    if (!url.trim()) {
+      toast({ title: 'Invalid URL', description: 'Please enter a valid URL', variant: 'destructive' });
+      return;
+    }
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('rag-ingest-url', {
+        body: { url, userId: user?.id },
+      });
+      if (error) throw error;
+      toast({ title: 'Imported', description: 'Web page imported as a document. You can now index it.' });
+      setUrl('');
+    } catch (e: any) {
+      console.error('Import error:', e);
+      toast({ title: 'Import Failed', description: e.message || 'Could not import URL', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex gap-2 items-end">
+      <div className="flex-1">
+        <label className="block text-sm font-medium mb-2">Import from URL</label>
+        <Input
+          placeholder="https://example.com/article"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+      </div>
+      <Button onClick={handleImport} disabled={loading} className="bg-gradient-primary">
+        {loading ? 'Importing...' : 'Import URL'}
+      </Button>
     </div>
   );
 };

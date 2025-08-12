@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Upload, FileText, Trash2, Download, File, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Documents() {
   const { documents, loading, uploadDocument, deleteDocument } = useDocuments();
@@ -221,7 +222,20 @@ export default function Documents() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(document.file_url, '_blank')}
+                          onClick={async () => {
+                            try {
+                              const filePath = document.file_url ? document.file_url.split('/').slice(-2).join('/') : '';
+                              if (!filePath) return window.open(document.file_url!, '_blank');
+                              const { data, error } = await supabase.storage
+                                .from('documents')
+                                .createSignedUrl(filePath, 60);
+                              if (error) throw error;
+                              window.open(data.signedUrl, '_blank');
+                            } catch (e) {
+                              console.error('Open file error:', e);
+                              window.open(document.file_url!, '_blank');
+                            }
+                          }}
                         >
                           <Download className="h-4 w-4" />
                         </Button>
