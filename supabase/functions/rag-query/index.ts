@@ -53,43 +53,34 @@ serve(async (req) => {
       throw new Error(`Failed to fetch documents: ${docsError.message}`);
     }
 
-    // For now, simulate RAG query with simple text matching
-    // In a real implementation, you would:
-    // 1. Convert query to embeddings using the same model as the index
-    // 2. Perform vector similarity search
-    // 3. Retrieve the most relevant document chunks
-    
-    const mockResults = [];
-    
+    // Perform direct content search and return real excerpts from user documents
+    const mockResults: Array<{ content: string; source: string; score: number }> = [];
+
     if (documents && documents.length > 0) {
-      // Simple text matching simulation
-      for (const doc of documents.slice(0, 3)) {
-        if (doc.content && doc.content.toLowerCase().includes(query.toLowerCase())) {
-          const excerpt = doc.content.substring(0, 200) + '...';
+      const q = String(query).toLowerCase().trim();
+      for (const doc of documents) {
+        const content: string = (doc as any).content || '';
+        const lower = content.toLowerCase();
+        const idx = q ? lower.indexOf(q) : -1;
+        if (idx !== -1) {
+          const window = 220;
+          const start = Math.max(0, idx - Math.floor(window / 2));
+          const end = Math.min(content.length, idx + q.length + Math.floor(window / 2));
+          const excerpt = content.slice(start, end).trim();
+
+          // Basic score based on query length vs content length (naive)
+          const score = Math.min(0.99, 0.7 + Math.min(0.29, q.length / Math.max(80, content.length)));
+
           mockResults.push({
             content: excerpt,
-            source: doc.filename || 'Unknown Document',
-            score: Math.random() * 0.3 + 0.7 // Random score between 0.7-1.0
+            source: (doc as any).file_url || (doc as any).filename || 'Document',
+            score,
           });
         }
       }
     }
 
-    // If no matches found, provide generic results
-    if (mockResults.length === 0) {
-      mockResults.push(
-        {
-          content: `This is a relevant excerpt that matches your query about "${query}". The content discusses related concepts and provides valuable insights.`,
-          source: `${vectorIndex.name}_doc_1.pdf`,
-          score: 0.85
-        },
-        {
-          content: `Additional context regarding "${query}" can be found in this section. It provides supplementary information and background details.`,
-          source: `${vectorIndex.name}_doc_2.pdf`,
-          score: 0.78
-        }
-      );
-    }
+    // No generic fallbacks — if no matches in your sources, return an empty list so the UI can inform the user.
 
     // Sort by score descending
     mockResults.sort((a, b) => b.score - a.score);

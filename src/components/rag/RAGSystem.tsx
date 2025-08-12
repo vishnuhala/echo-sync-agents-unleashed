@@ -80,6 +80,12 @@ export const RAGSystem = () => {
         ? ((res as any).results as Array<{ content: string; source: string; score: number }>)
         : [];
       setLastResults(resultsArray);
+      if (resultsArray.length === 0) {
+        toast({
+          title: 'No matches found',
+          description: 'No content in your imported sources matched your query. Try rephrasing or importing more pages.',
+        });
+      }
       setCurrentQuery('');
     } catch (error) {
       console.error('Query error:', error);
@@ -111,6 +117,7 @@ export const RAGSystem = () => {
   const handleIndexDocuments = async (indexId: string, docIds: string[]) => {
     try {
       await indexDocuments(indexId, docIds);
+      toast({ title: 'Indexed', description: 'Document indexed to the selected vector index.' });
     } catch (error) {
       console.error('Index documents error:', error);
     }
@@ -214,7 +221,13 @@ export const RAGSystem = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium text-sm">{result.source}</span>
+                      {typeof result.source === 'string' && result.source.startsWith('http') ? (
+                        <a href={result.source} target="_blank" rel="noopener noreferrer" className="font-medium text-sm underline underline-offset-2">
+                          {result.source}
+                        </a>
+                      ) : (
+                        <span className="font-medium text-sm">{result.source}</span>
+                      )}
                     </div>
                     <Badge variant="outline" className="bg-success/10 text-success border-success/20">
                       {(result.score * 100).toFixed(1)}% match
@@ -373,7 +386,13 @@ export const RAGSystem = () => {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium text-sm">{result.source}</span>
+                             {typeof result.source === 'string' && result.source.startsWith('http') ? (
+                               <a href={result.source} target="_blank" rel="noopener noreferrer" className="font-medium text-sm underline underline-offset-2">
+                                 {result.source}
+                               </a>
+                             ) : (
+                               <span className="font-medium text-sm">{result.source}</span>
+                             )}
                           </div>
                           <Badge variant="outline" className="bg-success/10 text-success border-success/20">
                             {(result.score * 100).toFixed(1)}% match
