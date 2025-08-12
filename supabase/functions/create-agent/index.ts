@@ -50,13 +50,17 @@ Temperature: ${temperature}
 
 Be helpful, accurate, and professional in all interactions.`;
 
+    // Map provided role to valid enum values from the database enum (user_role)
+    const validRoles = new Set(['trader', 'student', 'founder']);
+    const dbRole = validRoles.has(String(role)) ? String(role) as 'trader' | 'student' | 'founder' : 'student';
+
     // Insert agent into the agents table
     const { data: agent, error: agentError } = await supabase
       .from('agents')
       .insert({
         name,
         type: framework,
-        role: 'admin', // Use valid enum value from the database
+        role: dbRole,
         description,
         system_prompt: generatedSystemPrompt,
         active: true

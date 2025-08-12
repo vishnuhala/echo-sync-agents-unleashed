@@ -60,7 +60,7 @@ export const AgentCreator = () => {
   });
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
-
+  const { profile } = useAuth();
   const templates: AgentTemplate[] = [
     {
       id: '1',
@@ -129,6 +129,7 @@ export const AgentCreator = () => {
           name: template.name,
           description: template.description,
           framework: template.framework,
+          role: profile?.role ?? 'student',
           capabilities: template.capabilities,
           ragEnabled: template.ragEnabled,
           userId: user.id
@@ -175,7 +176,7 @@ export const AgentCreator = () => {
           name: newAgent.name,
           description: newAgent.description,
           framework: newAgent.framework,
-          role: newAgent.role,
+          role: profile?.role ?? 'student',
           capabilities: newAgent.capabilities,
           ragEnabled: newAgent.ragEnabled,
           tools: newAgent.tools,
