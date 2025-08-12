@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useAgents } from '@/hooks/useAgents';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Bot, 
@@ -61,6 +63,8 @@ export const AgentCreator = () => {
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
   const { profile } = useAuth();
+  const navigate = useNavigate();
+  const { refreshAgents } = useAgents();
   const templates: AgentTemplate[] = [
     {
       id: '1',
@@ -142,6 +146,14 @@ export const AgentCreator = () => {
         title: "Agent Created Successfully!",
         description: `${template.name} is now active and ready to chat`,
       });
+
+      const createdId = (data as any)?.agent?.id;
+      await refreshAgents();
+      if (createdId) {
+        navigate(`/chat/${createdId}`);
+      } else {
+        navigate('/agents');
+      }
     } catch (error) {
       console.error('Error creating agent:', error);
       toast({
@@ -193,6 +205,14 @@ export const AgentCreator = () => {
         title: "Custom Agent Created Successfully!",
         description: `${newAgent.name} is now active and ready to chat`,
       });
+
+      const createdId = (data as any)?.agent?.id;
+      await refreshAgents();
+      if (createdId) {
+        navigate(`/chat/${createdId}`);
+      } else {
+        navigate('/agents');
+      }
       
       // Reset form
       setNewAgent({
