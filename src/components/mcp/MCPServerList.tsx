@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Github, Download } from 'lucide-react';
+import { ExternalLink, Github, Download, TrendingUp, BookOpen, Building } from 'lucide-react';
 
 interface MCPServerInfo {
   name: string;
@@ -135,6 +135,58 @@ export const MCPServerList = () => {
           Ready-to-use MCP servers from the official Model Context Protocol repository
         </p>
       </div>
+
+      {/* Sector Picks */}
+      <Card className="bg-gradient-card border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">Sector Picks</CardTitle>
+          <CardDescription>Recommended MCP servers for Trader, Student, and Founder</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Trader */}
+            <div className="p-4 rounded-lg border">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <span className="font-semibold">Trader</span>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li><span className="font-medium">Brave Search</span><span className="text-muted-foreground"> — market/news search</span></li>
+                <li><span className="font-medium">Postgres / SQLite</span><span className="text-muted-foreground"> — signals & backtests</span></li>
+                <li><span className="font-medium">Puppeteer</span><span className="text-muted-foreground"> — scrape earnings pages</span></li>
+                <li><span className="font-medium">Slack</span><span className="text-muted-foreground"> — alerts & ops</span></li>
+              </ul>
+            </div>
+            {/* Student */}
+            <div className="p-4 rounded-lg border">
+              <div className="flex items-center gap-2 mb-2">
+                <BookOpen className="h-4 w-4 text-primary" />
+                <span className="font-semibold">Student</span>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li><span className="font-medium">Google Drive</span><span className="text-muted-foreground"> — study materials</span></li>
+                <li><span className="font-medium">Brave Search</span><span className="text-muted-foreground"> — research</span></li>
+                <li><span className="font-medium">Memory</span><span className="text-muted-foreground"> — long‑term notes & context</span></li>
+                <li><span className="font-medium">Filesystem</span><span className="text-muted-foreground"> — local files</span></li>
+              </ul>
+            </div>
+            {/* Founder */}
+            <div className="p-4 rounded-lg border">
+              <div className="flex items-center gap-2 mb-2">
+                <Building className="h-4 w-4 text-primary" />
+                <span className="font-semibold">Founder</span>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li><span className="font-medium">GitHub</span><span className="text-muted-foreground"> — repos, PRs, issues</span></li>
+                <li><span className="font-medium">Slack</span><span className="text-muted-foreground"> — team comms</span></li>
+                <li><span className="font-medium">Postgres / SQLite</span><span className="text-muted-foreground"> — app/CRM data</span></li>
+                <li><span className="font-medium">Brave Search</span><span className="text-muted-foreground"> — competitive intel</span></li>
+              </ul>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">Tip: Click a server below to view repo or copy install command.</p>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         {mcpServers.map((server) => (
