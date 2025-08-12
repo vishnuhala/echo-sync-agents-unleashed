@@ -299,24 +299,24 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/workflows')}>
+          <Card className="group bg-gradient-to-br from-card to-primary/5 shadow-card border-0 hover:shadow-glow transition-all duration-500 cursor-pointer transform hover:-translate-y-1" onClick={() => navigate('/integrations')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-gradient-primary group-hover:scale-110 transition-transform duration-300">
                   <Settings className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <div className="font-semibold">Workflows</div>
-                  <div className="text-xs text-muted-foreground">Smart Automation</div>
+                  <div className="font-semibold">Integrations</div>
+                  <div className="text-xs text-muted-foreground">Connect External Services</div>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">Create powerful automation workflows</div>
-                <div className="text-xs text-muted-foreground">Schedule & trigger agents</div>
+                <div className="text-sm text-muted-foreground">Connect and manage third-party services</div>
+                <div className="text-xs text-muted-foreground">Yahoo Finance • Notion • HubSpot and more</div>
                 <Button variant="outline" size="sm" className="w-full mt-3 group-hover:bg-primary group-hover:text-white transition-colors">
-                  Create Workflow →
+                  Open Integrations →
                 </Button>
               </div>
             </CardContent>
@@ -383,18 +383,6 @@ const Dashboard = () => {
                   </div>
                 </Button>
 
-                <Button 
-                  variant="outline" 
-                  className="justify-start h-auto p-4"
-                  onClick={() => navigate('/workflows')}
-                >
-                  <div className="text-left">
-                    <div className="font-medium">Create Workflows</div>
-                    <div className="text-sm text-muted-foreground">
-                      Automate agent tasks
-                    </div>
-                  </div>
-                </Button>
 
                 <Button 
                   variant="outline" 
