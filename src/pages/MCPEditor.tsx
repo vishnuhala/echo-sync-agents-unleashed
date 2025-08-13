@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MCPServerManager } from '@/components/mcp/MCPServer';
 import { MCPServerList } from '@/components/mcp/MCPServerList';
+import { MCPDemo } from '@/components/mcp/MCPDemo';
 import { A2ACommunication } from '@/components/agents/A2ACommunication';
 import { AgentCreator } from '@/components/agents/AgentCreator';
 import { RAGSystem } from '@/components/rag/RAGSystem';
 import { ComprehensiveGuide } from '@/components/guides/ComprehensiveGuide';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Server, Users, Bot, Database, List, BookOpen } from 'lucide-react';
+import { Server, Users, Bot, Database, List, BookOpen, Play } from 'lucide-react';
 
 export default function MCPEditor() {
   return (
@@ -23,7 +24,7 @@ export default function MCPEditor() {
         </div>
 
         <Tabs defaultValue="guide" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-card/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-7 bg-card/50 backdrop-blur-sm">
             <TabsTrigger value="guide" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
               Complete Guide
@@ -35,6 +36,10 @@ export default function MCPEditor() {
             <TabsTrigger value="mcp" className="flex items-center gap-2">
               <Server className="h-4 w-4" />
               My MCP Servers
+            </TabsTrigger>
+            <TabsTrigger value="demo" className="flex items-center gap-2">
+              <Play className="h-4 w-4" />
+              Live Demos
             </TabsTrigger>
             <TabsTrigger value="a2a" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -60,6 +65,10 @@ export default function MCPEditor() {
 
           <TabsContent value="mcp" className="space-y-6">
             <MCPServerManager />
+          </TabsContent>
+
+          <TabsContent value="demo" className="space-y-6">
+            <MCPDemo />
           </TabsContent>
 
           <TabsContent value="a2a" className="space-y-6">

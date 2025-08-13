@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useMCP } from '@/hooks/useMCP';
 import { 
   Server, 
   Wifi, 
@@ -17,7 +18,9 @@ import {
   Bot,
   TrendingUp,
   BookOpen,
-  Building
+  Building,
+  Trash2,
+  TestTube
 } from 'lucide-react';
 
 interface MCPResource {
@@ -43,74 +46,70 @@ interface MCPServer {
 }
 
 export const MCPServerManager = () => {
-  const [servers, setServers] = useState<MCPServer[]>([
-    {
-      id: '1',
-      name: 'Document Processor',
-      status: 'connected',
-      endpoint: 'mcp://localhost:3001',
-      resources: [
-        { uri: 'document://pdf-extractor', name: 'PDF Extractor', description: 'Extract text from PDF files' },
-        { uri: 'document://analyzer', name: 'Document Analyzer', description: 'Analyze document content' }
-      ],
-      tools: [
-        { name: 'extract_text', description: 'Extract text from documents', inputSchema: { type: 'object' } },
-        { name: 'summarize', description: 'Summarize document content', inputSchema: { type: 'object' } }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Web Scraper',
-      status: 'disconnected',
-      endpoint: 'mcp://localhost:3002',
-      resources: [],
-      tools: []
-    }
-  ]);
+  const { servers, loading, addMCPServer, connectMCPServer, disconnectMCPServer, executeMCPTool } = useMCP();
+  const [newServerName, setNewServerName] = useState('');
   const [newServerEndpoint, setNewServerEndpoint] = useState('');
   const [showAddServer, setShowAddServer] = useState(false);
+  const [testingServer, setTestingServer] = useState<string | null>(null);
   const { toast } = useToast();
 
   const connectServer = async (serverId: string) => {
-    setServers(prev => prev.map(s => 
-      s.id === serverId ? { ...s, status: 'connected' } : s
-    ));
-    toast({
-      title: "Server Connected",
-      description: "Successfully connected to MCP server",
-    });
+    try {
+      await connectMCPServer(serverId);
+    } catch (error) {
+      // Error handled in hook
+    }
   };
 
-  const disconnectServer = (serverId: string) => {
-    setServers(prev => prev.map(s => 
-      s.id === serverId ? { ...s, status: 'disconnected' } : s
-    ));
-    toast({
-      title: "Server Disconnected",
-      description: "Disconnected from MCP server",
-    });
+  const disconnectServer = async (serverId: string) => {
+    try {
+      await disconnectMCPServer(serverId);
+    } catch (error) {
+      // Error handled in hook
+    }
   };
 
-  const addServer = () => {
-    if (!newServerEndpoint.trim()) return;
+  const addServer = async () => {
+    if (!newServerName.trim() || !newServerEndpoint.trim()) return;
     
-    const newServer: MCPServer = {
-      id: Date.now().toString(),
-      name: `MCP Server ${servers.length + 1}`,
-      status: 'disconnected',
-      endpoint: newServerEndpoint,
-      resources: [],
-      tools: []
-    };
+    try {
+      await addMCPServer(newServerName, newServerEndpoint);
+      setNewServerName('');
+      setNewServerEndpoint('');
+      setShowAddServer(false);
+    } catch (error) {
+      // Error handled in hook
+    }
+  };
+
+  const testServer = async (serverId: string) => {
+    setTestingServer(serverId);
+    const server = servers.find(s => s.id === serverId);
     
-    setServers(prev => [...prev, newServer]);
-    setNewServerEndpoint('');
-    setShowAddServer(false);
-    
-    toast({
-      title: "Server Added",
-      description: "New MCP server added successfully",
-    });
+    if (!server || server.tools.length === 0) {
+      toast({
+        title: "No Tools Available",
+        description: "This server has no tools to test",
+        variant: "destructive"
+      });
+      setTestingServer(null);
+      return;
+    }
+
+    try {
+      // Test the first available tool with empty parameters
+      const firstTool = server.tools[0];
+      await executeMCPTool(serverId, firstTool.name, {});
+      
+      toast({
+        title: "Test Successful",
+        description: `Successfully tested ${firstTool.name} tool`,
+      });
+    } catch (error) {
+      // Error handled in hook
+    } finally {
+      setTestingServer(null);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -152,7 +151,12 @@ export const MCPServerManager = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
-              placeholder="mcp://localhost:3001"
+              placeholder="Server Name (e.g., Brave Search Server)"
+              value={newServerName}
+              onChange={(e) => setNewServerName(e.target.value)}
+            />
+            <Input
+              placeholder="Server Endpoint (e.g., npx @modelcontextprotocol/server-brave-search)"
               value={newServerEndpoint}
               onChange={(e) => setNewServerEndpoint(e.target.value)}
             />
@@ -187,13 +191,23 @@ export const MCPServerManager = () => {
                 </div>
                 <div className="flex gap-2">
                   {server.status === 'connected' ? (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => disconnectServer(server.id)}
-                    >
-                      <Square className="h-4 w-4" />
-                    </Button>
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => testServer(server.id)}
+                        disabled={testingServer === server.id}
+                      >
+                        <TestTube className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => disconnectServer(server.id)}
+                      >
+                        <Square className="h-4 w-4" />
+                      </Button>
+                    </>
                   ) : (
                     <Button 
                       size="sm"

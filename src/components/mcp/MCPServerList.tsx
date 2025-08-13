@@ -1,7 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Github, Download, TrendingUp, BookOpen, Building } from 'lucide-react';
+import { ExternalLink, Github, Download, TrendingUp, BookOpen, Building, Plus } from 'lucide-react';
+import { useMCP } from '@/hooks/useMCP';
+import { useToast } from '@/hooks/use-toast';
 
 interface MCPServerInfo {
   name: string;
@@ -15,6 +17,8 @@ interface MCPServerInfo {
 }
 
 export const MCPServerList = () => {
+  const { addMCPServer } = useMCP();
+  const { toast } = useToast();
   const mcpServers: MCPServerInfo[] = [
     {
       name: "Filesystem Server",
@@ -124,6 +128,18 @@ export const MCPServerList = () => {
       case 'beta': return 'bg-warning/10 text-warning border-warning/20';
       case 'experimental': return 'bg-destructive/10 text-destructive border-destructive/20';
       default: return 'bg-muted/10 text-muted-foreground border-muted/20';
+    }
+  };
+
+  const handleAddToMyServers = async (server: MCPServerInfo) => {
+    try {
+      await addMCPServer(server.name, server.endpoint);
+      toast({
+        title: "Server Added",
+        description: `${server.name} has been added to your MCP servers`,
+      });
+    } catch (error) {
+      // Error is already handled in the hook
     }
   };
 
@@ -249,6 +265,14 @@ export const MCPServerList = () => {
                 >
                   <Download className="h-4 w-4 mr-1" />
                   Copy Install
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleAddToMyServers(server)}
+                  className="bg-gradient-primary"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add to My Servers
                 </Button>
               </div>
             </CardContent>
