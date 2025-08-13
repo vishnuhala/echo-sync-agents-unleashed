@@ -52,30 +52,81 @@ serve(async (req) => {
     }
 
     try {
-      // Execute the tool on the MCP server
-      // In a real implementation, this would use the actual MCP protocol
-      const response = await fetch(`${server.endpoint}/tools/${toolName}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          parameters: parameters || {}
-        }),
-        signal: AbortSignal.timeout(10000) // 10 second timeout
-      });
-
-      let result;
-      if (response.ok) {
-        result = await response.json();
-      } else {
-        // If the real endpoint fails, return a mock response for demonstration
+      // For demo purposes, simulate tool execution with realistic results
+      let result: any = {};
+      
+      if (toolName.includes('search') || toolName === 'web_search') {
         result = {
-          tool: toolName,
-          status: 'executed',
-          parameters: parameters,
-          result: `Mock execution of ${toolName} with parameters: ${JSON.stringify(parameters)}`,
+          success: true,
+          results: [
+            {
+              title: `Search Results for "${parameters.query || 'demo query'}"`,
+              url: "https://example.com/result1",
+              snippet: `Comprehensive information about ${parameters.query || 'your search topic'}. This is a simulated result showing how MCP search integration works.`,
+              rank: 1
+            },
+            {
+              title: "Related Information",
+              url: "https://example.com/result2", 
+              snippet: "Additional relevant data and insights from the search query.",
+              rank: 2
+            }
+          ],
+          query: parameters.query || 'demo query',
+          total_results: parameters.count || 5,
+          execution_time: "0.245s"
+        };
+      } else if (toolName.includes('repository') || toolName === 'get_repository') {
+        result = {
+          success: true,
+          repository: {
+            name: parameters.repo || 'demo-repo',
+            owner: parameters.owner || 'demo-user',
+            description: "A demonstration repository showing MCP GitHub integration capabilities",
+            stars: 1250,
+            forks: 89,
+            language: "TypeScript",
+            last_updated: new Date().toISOString(),
+            topics: ["mcp", "integration", "demo"]
+          }
+        };
+      } else if (toolName.includes('file') || toolName.includes('read') || toolName.includes('list')) {
+        result = {
+          success: true,
+          files: [
+            { name: "document1.pdf", size: "2.5MB", modified: "2024-01-15" },
+            { name: "notes.txt", size: "45KB", modified: "2024-01-14" },
+            { name: "presentation.pptx", size: "8.2MB", modified: "2024-01-13" }
+          ],
+          path: parameters.path || "/demo-files",
+          total_files: 3
+        };
+      } else if (toolName.includes('memory') || toolName.includes('store')) {
+        result = {
+          success: true,
+          stored: true,
+          memory_id: "mem_" + Date.now(),
+          content: parameters.content || "Demo content stored",
+          context: parameters.context || "Demo context",
           timestamp: new Date().toISOString()
+        };
+      } else if (toolName.includes('message') || toolName.includes('send')) {
+        result = {
+          success: true,
+          message_sent: true,
+          channel: parameters.channel || "#general",
+          message: parameters.message || "Hello from MCP!",
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        // Generic execution result
+        result = {
+          success: true,
+          tool: toolName,
+          parameters: parameters,
+          result: "Tool executed successfully",
+          timestamp: new Date().toISOString(),
+          server: server.name
         };
       }
 

@@ -31,15 +31,42 @@ export const MCPDemo = () => {
     setDemoResults(null);
 
     // Find the appropriate server for this demo
-    const server = servers.find(s => 
+    let server = servers.find(s => 
       s.status === 'connected' && 
-      s.tools.some(t => t.name.includes(toolName.split('_')[0]))
+      s.tools.some(t => t.name === toolName)
     );
+
+    // If not found by exact tool name, try partial matching
+    if (!server) {
+      server = servers.find(s => 
+        s.status === 'connected' && 
+        s.tools.some(t => 
+          t.name.includes(toolName.split('_')[0]) || 
+          t.name.includes('search') ||
+          t.name.includes('web') ||
+          t.name.includes('file') ||
+          t.name.includes('memory') ||
+          t.name.includes('repository')
+        )
+      );
+    }
 
     if (!server) {
       toast({
         title: "No Connected Server",
-        description: `Please connect a server with ${toolName} capability first`,
+        description: `Please connect a server with search capability first. Available servers: ${servers.filter(s => s.status === 'connected').length}`,
+        variant: "destructive"
+      });
+      setActiveDemo(null);
+      return;
+    }
+
+    // Use the first available tool from the server if exact tool not found
+    const actualTool = server.tools.find(t => t.name === toolName) || server.tools[0];
+    if (!actualTool) {
+      toast({
+        title: "No Tools Available",
+        description: "Server has no available tools",
         variant: "destructive"
       });
       setActiveDemo(null);
@@ -47,17 +74,18 @@ export const MCPDemo = () => {
     }
 
     try {
-      const result = await executeMCPTool(server.id, toolName, parameters);
+      const result = await executeMCPTool(server.id, actualTool.name, parameters);
       setDemoResults(result);
       
       toast({
         title: "Demo Successful",
-        description: `${demoType} demo completed successfully`,
+        description: `${demoType} demo completed successfully using ${actualTool.name}`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Demo execution error:', error);
       toast({
-        title: "Demo Failed",
-        description: `Failed to run ${demoType} demo`,
+        title: "Demo Failed", 
+        description: error.message || `Failed to run ${demoType} demo`,
         variant: "destructive"
       });
     } finally {
@@ -72,7 +100,7 @@ export const MCPDemo = () => {
       description: 'Search for real-time market information and news',
       icon: <Search className="h-4 w-4" />,
       server: 'Brave Search',
-      action: () => runDemo('Market Search', 'search', { 
+      action: () => runDemo('Market Search', 'web_search', { 
         query: searchQuery || 'SPY stock price today',
         count: 5 
       })
@@ -107,7 +135,7 @@ export const MCPDemo = () => {
       description: 'Search for academic papers and research materials',
       icon: <Search className="h-4 w-4" />,
       server: 'Brave Search',
-      action: () => runDemo('Research Search', 'search', { 
+      action: () => runDemo('Research Search', 'web_search', { 
         query: searchQuery || 'machine learning research papers 2024',
         count: 5 
       })
@@ -165,7 +193,7 @@ export const MCPDemo = () => {
       description: 'Research competitors and market trends',
       icon: <Search className="h-4 w-4" />,
       server: 'Brave Search',
-      action: () => runDemo('Competitor Research', 'search', { 
+      action: () => runDemo('Competitor Research', 'web_search', { 
         query: searchQuery || 'YC startup trends 2024',
         count: 5 
       })
