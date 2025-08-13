@@ -31,10 +31,11 @@ export const ComprehensiveGuide = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6 bg-card/50 backdrop-blur-sm">
+        <TabsList className="grid w-full grid-cols-7 bg-card/50 backdrop-blur-sm">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="mcp">MCP</TabsTrigger>
           <TabsTrigger value="a2a">A2A</TabsTrigger>
+          <TabsTrigger value="agents">Agent Creator</TabsTrigger>
           <TabsTrigger value="rag">RAG</TabsTrigger>
           <TabsTrigger value="llamaindex">LlamaIndex</TabsTrigger>
           <TabsTrigger value="langraph">LangGraph</TabsTrigger>
@@ -132,56 +133,67 @@ export const ComprehensiveGuide = () => {
                   <h3 className="text-lg font-semibold">What is MCP?</h3>
                   <p className="text-muted-foreground">
                     MCP enables AI agents to connect with external tools, databases, and services. 
-                    It provides a standardized way for agents to access real-world capabilities.
+                    It provides a standardized way for agents to access real-world capabilities in real-time.
                   </p>
                   
-                  <h4 className="font-semibold">Key Features:</h4>
+                  <h4 className="font-semibold">Current Features:</h4>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      Real-time server management
+                      Live server connection management
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      Tool execution capabilities
+                      Real-time tool execution
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      Resource access control
+                      Open source server integration
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      Sector-specific demonstrations
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      A2A tool integration
                     </li>
                   </ul>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Available MCP Servers</h3>
+                  <h3 className="text-lg font-semibold">Integrated MCP Servers</h3>
                   <div className="space-y-2">
                     <Badge variant="outline" className="mr-2">GitHub MCP</Badge>
                     <Badge variant="outline" className="mr-2">File System</Badge>
-                    <Badge variant="outline" className="mr-2">Database</Badge>
-                    <Badge variant="outline" className="mr-2">Slack</Badge>
+                    <Badge variant="outline" className="mr-2">Brave Search</Badge>
                     <Badge variant="outline" className="mr-2">Google Drive</Badge>
+                    <Badge variant="outline" className="mr-2">Memory Bank</Badge>
+                    <Badge variant="outline" className="mr-2">PostgreSQL</Badge>
+                    <Badge variant="outline" className="mr-2">Slack</Badge>
+                    <Badge variant="outline" className="mr-2">Everything</Badge>
                   </div>
                   
                   <div className="pt-4">
                     <Button className="w-full" variant="outline">
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      View Open Source MCP Servers
+                      Add Open Source Servers to Your Project
                     </Button>
                   </div>
                 </div>
               </div>
 
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">Quick Start Steps</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <h3 className="text-lg font-semibold mb-4">MCP Implementation Steps</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <Card className="bg-card/50">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">1</div>
-                        <span className="font-semibold">Add Server</span>
+                        <span className="font-semibold">Browse Servers</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Go to "My MCP Servers" tab and add a new server endpoint
+                        Go to "Open Source MCP" to see available servers
                       </p>
                     </CardContent>
                   </Card>
@@ -190,10 +202,10 @@ export const ComprehensiveGuide = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">2</div>
-                        <span className="font-semibold">Connect</span>
+                        <span className="font-semibold">Add & Connect</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Click connect to establish real-time connection
+                        Add servers to your project and connect them live
                       </p>
                     </CardContent>
                   </Card>
@@ -202,10 +214,22 @@ export const ComprehensiveGuide = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">3</div>
-                        <span className="font-semibold">Use Tools</span>
+                        <span className="font-semibold">Test Tools</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Execute tools through connected agents
+                        Use "Live Demos" to test sector-specific tools
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-card/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">4</div>
+                        <span className="font-semibold">A2A Integration</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Agents can now execute MCP tools automatically
                       </p>
                     </CardContent>
                   </Card>
@@ -229,59 +253,67 @@ export const ComprehensiveGuide = () => {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">A2A Capabilities</h3>
+                  <h3 className="text-lg font-semibold">Enhanced A2A Features</h3>
                   <p className="text-muted-foreground">
-                    Agents can communicate directly, share context, and execute complex workflows together.
+                    Real-time agent communication with structured intents, MCP tool execution, and live collaboration.
                   </p>
                   
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
                       <div>
-                        <h4 className="font-semibold">Direct Messaging</h4>
-                        <p className="text-sm text-muted-foreground">Agents send structured messages in real-time</p>
+                        <h4 className="font-semibold">Structured Communication</h4>
+                        <p className="text-sm text-muted-foreground">Direct messages and tool execution intents</p>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
                       <div>
-                        <h4 className="font-semibold">Workflow Execution</h4>
-                        <p className="text-sm text-muted-foreground">Multi-step processes with agent handoffs</p>
+                        <h4 className="font-semibold">MCP Tool Integration</h4>
+                        <p className="text-sm text-muted-foreground">Agents execute MCP tools for each other</p>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
                       <div>
-                        <h4 className="font-semibold">Context Sharing</h4>
-                        <p className="text-sm text-muted-foreground">Agents share knowledge and state</p>
+                        <h4 className="font-semibold">Real-time Updates</h4>
+                        <p className="text-sm text-muted-foreground">Live status updates and incremental results</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold">Context Persistence</h4>
+                        <p className="text-sm text-muted-foreground">Agents maintain shared conversation state</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Workflow Types</h3>
+                  <h3 className="text-lg font-semibold">Communication Types</h3>
                   <div className="space-y-3">
-                    <Card className="bg-card/50">
+                    <Card className="bg-card/50 border-blue-500/20">
                       <CardContent className="p-3">
-                        <h4 className="font-semibold text-sm">Sequential</h4>
-                        <p className="text-xs text-muted-foreground">Agent A → Agent B → Agent C</p>
+                        <h4 className="font-semibold text-sm text-blue-500">Direct Intent</h4>
+                        <p className="text-xs text-muted-foreground">Simple message exchange between agents</p>
                       </CardContent>
                     </Card>
                     
-                    <Card className="bg-card/50">
+                    <Card className="bg-card/50 border-purple-500/20">
                       <CardContent className="p-3">
-                        <h4 className="font-semibold text-sm">Parallel</h4>
-                        <p className="text-xs text-muted-foreground">Multiple agents work simultaneously</p>
+                        <h4 className="font-semibold text-sm text-purple-500">Tool Intent</h4>
+                        <p className="text-xs text-muted-foreground">Agent requests another to execute MCP tools</p>
                       </CardContent>
                     </Card>
                     
-                    <Card className="bg-card/50">
+                    <Card className="bg-card/50 border-green-500/20">
                       <CardContent className="p-3">
-                        <h4 className="font-semibold text-sm">Collaborative</h4>
-                        <p className="text-xs text-muted-foreground">Agents debate and reach consensus</p>
+                        <h4 className="font-semibold text-sm text-green-500">Workflow Chain</h4>
+                        <p className="text-xs text-muted-foreground">Complex multi-step processes with handoffs</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -289,13 +321,13 @@ export const ComprehensiveGuide = () => {
               </div>
 
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">Create Your First A2A Workflow</h3>
+                <h3 className="text-lg font-semibold mb-4">A2A Implementation Steps</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   {[
-                    { step: 1, title: "Create Agents", desc: "Use Agent Creator to build specialized agents" },
-                    { step: 2, title: "Define Workflow", desc: "Set up agent sequence and rules" },
-                    { step: 3, title: "Test Communication", desc: "Send test messages between agents" },
-                    { step: 4, title: "Execute Workflow", desc: "Run full multi-agent process" }
+                    { step: 1, title: "Create Agents", desc: "Build agents with Agent Creator - each gets a chat interface" },
+                    { step: 2, title: "Connect MCP", desc: "Add MCP servers for tools agents can execute" },
+                    { step: 3, title: "Test A2A", desc: "Use A2A tab to send direct messages or tool requests" },
+                    { step: 4, title: "Live Workflow", desc: "Agents communicate in real-time with status updates" }
                   ].map((item) => (
                     <Card key={item.step} className="bg-card/50">
                       <CardContent className="p-4">
@@ -311,6 +343,121 @@ export const ComprehensiveGuide = () => {
                   ))}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="agents" className="space-y-6">
+          <Card className="bg-gradient-card border-orange-500/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-6 w-6 text-orange-500" />
+                Agent Creator Complete Guide
+              </CardTitle>
+              <CardDescription>
+                Create specialized AI agents with templates or custom configurations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Agent Creation Methods</h3>
+                  <p className="text-muted-foreground">
+                    Build AI agents using pre-built templates or create custom agents with specific capabilities and frameworks.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-orange-500 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold">Template Agents</h4>
+                        <p className="text-sm text-muted-foreground">Pre-configured agents for common use cases</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-orange-500 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold">Custom Configuration</h4>
+                        <p className="text-sm text-muted-foreground">Full control over agent capabilities and behavior</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-orange-500 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold">Instant Chat Access</h4>
+                        <p className="text-sm text-muted-foreground">Each agent gets its own dedicated chat interface</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-orange-500 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold">Framework Support</h4>
+                        <p className="text-sm text-muted-foreground">LangChain, ADK, and Custom implementations</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Available Templates</h3>
+                  <div className="space-y-3">
+                    <Card className="bg-card/50 border-blue-500/20">
+                      <CardContent className="p-3">
+                        <h4 className="font-semibold text-sm text-blue-500">Document Analyst</h4>
+                        <p className="text-xs text-muted-foreground">LangChain + RAG for document processing</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-card/50 border-green-500/20">
+                      <CardContent className="p-3">
+                        <h4 className="font-semibold text-sm text-green-500">Code Assistant</h4>
+                        <p className="text-xs text-muted-foreground">ADK framework for programming tasks</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-card/50 border-purple-500/20">
+                      <CardContent className="p-3">
+                        <h4 className="font-semibold text-sm text-purple-500">Research Agent</h4>
+                        <p className="text-xs text-muted-foreground">Custom framework with LlamaIndex</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Agent Creation Workflow</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {[
+                    { step: 1, title: "Choose Method", desc: "Select template or custom creation" },
+                    { step: 2, title: "Configure Agent", desc: "Set capabilities, tools, and framework" },
+                    { step: 3, title: "Create & Deploy", desc: "Agent is created and activated instantly" },
+                    { step: 4, title: "Start Chatting", desc: "Direct navigation to dedicated chat interface" }
+                  ].map((item) => (
+                    <Card key={item.step} className="bg-card/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center">
+                            {item.step}
+                          </div>
+                          <span className="font-semibold text-sm">{item.title}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{item.desc}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <Alert className="border-orange-500/20 bg-orange-500/5">
+                <Bot className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Single Agent Focus:</strong> Each agent creation opens a dedicated chat where you can test and interact with that specific agent immediately.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </TabsContent>

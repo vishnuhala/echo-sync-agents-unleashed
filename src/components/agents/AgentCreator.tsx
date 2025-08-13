@@ -147,12 +147,14 @@ export const AgentCreator = () => {
         description: `${template.name} is now active and ready to chat`,
       });
 
-      const createdId = (data as any)?.agent?.id;
+      const createdAgent = (data as any)?.agent;
       await refreshAgents();
-      if (createdId) {
-        navigate(`/chat/${createdId}`);
+      
+      // Navigate to chat with the newly created agent
+      if (createdAgent?.id) {
+        navigate(`/chat?agent=${createdAgent.id}`);
       } else {
-        navigate('/agents');
+        navigate('/chat');
       }
     } catch (error) {
       console.error('Error creating agent:', error);
@@ -206,12 +208,14 @@ export const AgentCreator = () => {
         description: `${newAgent.name} is now active and ready to chat`,
       });
 
-      const createdId = (data as any)?.agent?.id;
+      const createdAgent = (data as any)?.agent;
       await refreshAgents();
-      if (createdId) {
-        navigate(`/chat/${createdId}`);
+      
+      // Navigate to chat with the newly created agent
+      if (createdAgent?.id) {
+        navigate(`/chat?agent=${createdAgent.id}`);
       } else {
-        navigate('/agents');
+        navigate('/chat');
       }
       
       // Reset form
