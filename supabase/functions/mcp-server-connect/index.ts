@@ -140,6 +140,143 @@ serve(async (req) => {
             mimeType: 'application/json'
           }
         ];
+      } else if (server.name.toLowerCase().includes('google')) {
+        // Enhanced Google services integration
+        const serviceName = server.name.toLowerCase();
+        
+        if (serviceName.includes('search')) {
+          tools = [
+            {
+              name: 'web_search',
+              description: 'Search using Google Custom Search API',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string', description: 'Search query' },
+                  num: { type: 'number', description: 'Number of results', default: 10 },
+                  type: { type: 'string', description: 'Search type (web, image)', default: 'web' }
+                },
+                required: ['query']
+              }
+            },
+            {
+              name: 'image_search',
+              description: 'Search for images using Google',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string', description: 'Image search query' },
+                  num: { type: 'number', description: 'Number of results', default: 10 }
+                },
+                required: ['query']
+              }
+            }
+          ];
+          resources = [
+            {
+              uri: 'google://search',
+              name: 'Google Search API',
+              description: 'Access to Google Custom Search API',
+              mimeType: 'application/json'
+            }
+          ];
+        } else if (serviceName.includes('calendar')) {
+          tools = [
+            {
+              name: 'create_event',
+              description: 'Create a calendar event',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  summary: { type: 'string', description: 'Event title' },
+                  startTime: { type: 'string', description: 'Start time (ISO format)' },
+                  endTime: { type: 'string', description: 'End time (ISO format)' },
+                  description: { type: 'string', description: 'Event description' }
+                },
+                required: ['summary', 'startTime']
+              }
+            },
+            {
+              name: 'list_events',
+              description: 'List calendar events',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  maxResults: { type: 'number', description: 'Maximum results', default: 10 },
+                  timeMin: { type: 'string', description: 'Start time filter' }
+                }
+              }
+            }
+          ];
+          resources = [
+            {
+              uri: 'google://calendar',
+              name: 'Google Calendar API',
+              description: 'Access to Google Calendar',
+              mimeType: 'application/json'
+            }
+          ];
+        } else if (serviceName.includes('gmail')) {
+          tools = [
+            {
+              name: 'send_email',
+              description: 'Send an email via Gmail',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  to: { type: 'string', description: 'Recipient email' },
+                  subject: { type: 'string', description: 'Email subject' },
+                  body: { type: 'string', description: 'Email body' }
+                },
+                required: ['to', 'subject', 'body']
+              }
+            },
+            {
+              name: 'read_emails',
+              description: 'Read emails from Gmail',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  maxResults: { type: 'number', description: 'Maximum results', default: 10 },
+                  q: { type: 'string', description: 'Search query' }
+                }
+              }
+            }
+          ];
+          resources = [
+            {
+              uri: 'google://gmail',
+              name: 'Gmail API',
+              description: 'Access to Gmail',
+              mimeType: 'application/json'
+            }
+          ];
+        } else {
+          // Generic Google service
+          tools = [
+            {
+              name: 'api_call',
+              description: 'Make API call to Google service',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  endpoint: { type: 'string', description: 'API endpoint' },
+                  method: { type: 'string', description: 'HTTP method', default: 'GET' },
+                  data: { type: 'object', description: 'Request data' }
+                },
+                required: ['endpoint']
+              }
+            }
+          ];
+          resources = [
+            {
+              uri: `google://${serviceName}`,
+              name: `Google ${serviceName} API`,
+              description: `Access to Google ${serviceName} service`,
+              mimeType: 'application/json'
+            }
+          ];
+        }
       } else {
         // Generic tools for other servers
         tools = [
@@ -153,6 +290,16 @@ serve(async (req) => {
                 args: { type: 'array', items: { type: 'string' }, description: 'Command arguments' }
               },
               required: ['command']
+            }
+          },
+          {
+            name: 'ping',
+            description: 'Test server connectivity',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                message: { type: 'string', description: 'Test message' }
+              }
             }
           }
         ];

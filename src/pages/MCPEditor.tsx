@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MCPServerManager } from '@/components/mcp/MCPServer';
 import { MCPServerList } from '@/components/mcp/MCPServerList';
 import { MCPDemo } from '@/components/mcp/MCPDemo';
+import { GoogleMCPIntegration } from '@/components/mcp/GoogleMCPIntegration';
 import { A2ACommunication } from '@/components/agents/A2ACommunication';
 import { AgentCreator } from '@/components/agents/AgentCreator';
 import { RAGSystem } from '@/components/rag/RAGSystem';
@@ -24,7 +25,7 @@ export default function MCPEditor() {
         </div>
 
         <Tabs defaultValue="guide" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 bg-card/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-8 bg-card/50 backdrop-blur-sm">
             <TabsTrigger value="guide" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
               Complete Guide
@@ -36,6 +37,10 @@ export default function MCPEditor() {
             <TabsTrigger value="mcp" className="flex items-center gap-2">
               <Server className="h-4 w-4" />
               My MCP Servers
+            </TabsTrigger>
+            <TabsTrigger value="google" className="flex items-center gap-2">
+              <Server className="h-4 w-4" />
+              Google SDK
             </TabsTrigger>
             <TabsTrigger value="demo" className="flex items-center gap-2">
               <Play className="h-4 w-4" />
@@ -65,6 +70,10 @@ export default function MCPEditor() {
 
           <TabsContent value="mcp" className="space-y-6">
             <MCPServerManager />
+          </TabsContent>
+
+          <TabsContent value="google" className="space-y-6">
+            <GoogleMCPIntegration />
           </TabsContent>
 
           <TabsContent value="demo" className="space-y-6">
