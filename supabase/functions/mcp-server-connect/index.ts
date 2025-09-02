@@ -251,6 +251,107 @@ serve(async (req) => {
               mimeType: 'application/json'
             }
           ];
+        } else if (serviceName.includes('docs')) {
+          tools = [
+            {
+              name: 'create_doc',
+              description: 'Create a new Google Document',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string', description: 'Document title' },
+                  content: { type: 'string', description: 'Initial content' }
+                },
+                required: ['title']
+              }
+            },
+            {
+              name: 'read_doc',
+              description: 'Read content from a Google Document',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  documentId: { type: 'string', description: 'Document ID' }
+                },
+                required: ['documentId']
+              }
+            }
+          ];
+          resources = [
+            {
+              uri: 'google://docs',
+              name: 'Google Docs API',
+              description: 'Access to Google Docs',
+              mimeType: 'application/json'
+            }
+          ];
+        } else if (serviceName.includes('maps')) {
+          tools = [
+            {
+              name: 'geocode',
+              description: 'Convert address to coordinates',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  address: { type: 'string', description: 'Address to geocode' }
+                },
+                required: ['address']
+              }
+            },
+            {
+              name: 'reverse_geocode',
+              description: 'Convert coordinates to address',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  latlng: { type: 'string', description: 'Latitude,longitude' }
+                },
+                required: ['latlng']
+              }
+            }
+          ];
+          resources = [
+            {
+              uri: 'google://maps',
+              name: 'Google Maps API',
+              description: 'Access to Google Maps services',
+              mimeType: 'application/json'
+            }
+          ];
+        } else if (serviceName.includes('youtube')) {
+          tools = [
+            {
+              name: 'search_videos',
+              description: 'Search YouTube videos',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  q: { type: 'string', description: 'Search query' },
+                  maxResults: { type: 'number', description: 'Maximum results', default: 5 }
+                },
+                required: ['q']
+              }
+            },
+            {
+              name: 'get_video_info',
+              description: 'Get detailed video information',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  videoId: { type: 'string', description: 'YouTube video ID' }
+                },
+                required: ['videoId']
+              }
+            }
+          ];
+          resources = [
+            {
+              uri: 'google://youtube',
+              name: 'YouTube Data API',
+              description: 'Access to YouTube data',
+              mimeType: 'application/json'
+            }
+          ];
         } else {
           // Generic Google service
           tools = [
