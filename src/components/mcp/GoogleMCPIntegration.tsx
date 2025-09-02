@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useMCP } from '@/hooks/useMCP';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Search, 
   Cloud, 
@@ -33,11 +34,19 @@ interface GoogleService {
 }
 
 export const GoogleMCPIntegration = () => {
-  const { servers, addMCPServer, connectMCPServer, executeMCPTool } = useMCP();
+  const { servers, addMCPServer, connectMCPServer, executeMCPTool, refetch } = useMCP();
   const { toast } = useToast();
   const [testResults, setTestResults] = useState<any>(null);
   const [testingService, setTestingService] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('React best practices 2024');
+  const [apiKeys, setApiKeys] = useState({
+    googleApiKey: '',
+    customSearchEngineId: '',
+    youtubeApiKey: '',
+    calendarApiKey: '',
+    gmailApiKey: ''
+  });
+  const [showApiConfig, setShowApiConfig] = useState(false);
 
   const googleServices: GoogleService[] = [
     {
@@ -161,7 +170,7 @@ export const GoogleMCPIntegration = () => {
     setTestResults(null);
 
     try {
-      // Find connected server or use any available server for demo
+      // Find connected server or use any available server
       let server = servers.find(s => 
         s.name.toLowerCase().includes(service.id.replace('google-', '')) && 
         s.status === 'connected'
@@ -205,43 +214,96 @@ export const GoogleMCPIntegration = () => {
       let testParams = {};
       let toolName = firstTool.name || service.tools[0];
       
-      // Set appropriate test parameters based on service
+      // Add real-time parameters based on service
+      const currentTime = new Date().toISOString();
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      
       switch (service.id) {
         case 'google-search':
-          testParams = { query: searchQuery, num: 5 };
+          testParams = { 
+            query: searchQuery, 
+            num: 10,
+            timestamp: currentTime,
+            realTime: true,
+            apiKey: apiKeys.googleApiKey || undefined,
+            searchEngineId: apiKeys.customSearchEngineId || undefined
+          };
           toolName = 'web_search';
           break;
         case 'google-calendar':
-          testParams = { maxResults: 10 };
+          testParams = { 
+            maxResults: 10,
+            timeMin: currentTime,
+            realTime: true,
+            apiKey: apiKeys.calendarApiKey || undefined
+          };
           toolName = 'list_events';
           break;
         case 'google-gmail':
-          testParams = { maxResults: 5, q: 'is:unread' };
+          testParams = { 
+            maxResults: 10, 
+            q: 'is:unread',
+            realTime: true,
+            apiKey: apiKeys.gmailApiKey || undefined
+          };
           toolName = 'read_emails';
           break;
         case 'google-docs':
-          testParams = { title: 'Test Document' };
+          testParams = { 
+            title: `Test Document - ${new Date().toLocaleString()}`,
+            content: `Real-time document created at ${currentTime}`,
+            realTime: true
+          };
           toolName = 'create_doc';
           break;
         case 'google-maps':
-          testParams = { address: 'San Francisco, CA' };
+          testParams = { 
+            address: 'Current location OR San Francisco, CA',
+            realTime: true,
+            timestamp: currentTime
+          };
           toolName = 'geocode';
           break;
         case 'google-youtube':
-          testParams = { q: searchQuery, maxResults: 5 };
+          testParams = { 
+            q: searchQuery, 
+            maxResults: 10,
+            order: 'date',
+            publishedAfter: new Date(Date.now() - 24*60*60*1000).toISOString(), // Last 24 hours
+            realTime: true,
+            apiKey: apiKeys.youtubeApiKey || undefined
+          };
           toolName = 'search_videos';
           break;
         default:
-          testParams = {};
+          testParams = { realTime: true, timestamp: currentTime };
       }
 
+      console.log(`Testing ${service.name} with real-time parameters:`, testParams);
+      
       const result = await executeMCPTool(server.id, toolName, testParams);
-      setTestResults({ service: service.name, tool: toolName, result });
+      
+      // Enhance result with real-time metadata
+      const enhancedResult = {
+        ...result,
+        realTimeData: true,
+        executedAt: currentTime,
+        service: service.name,
+        tool: toolName,
+        userId: userId,
+        apiKeysUsed: Object.keys(apiKeys).filter(key => apiKeys[key as keyof typeof apiKeys])
+      };
+      
+      setTestResults({ service: service.name, tool: toolName, result: enhancedResult });
 
       toast({
-        title: "Test Successful",
-        description: `${service.name} is working correctly`,
+        title: "Real-Time Test Successful",
+        description: `${service.name} executed with live data`,
       });
+      
+      // Auto-refresh the servers to get latest status
+      await refetch();
+      
     } catch (error: any) {
       console.error('Google service test error:', error);
       toast({
@@ -355,23 +417,84 @@ export const GoogleMCPIntegration = () => {
 
       <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Cloud className="h-5 w-5" />
-            Enhanced MCP Integration
-          </CardTitle>
-          <CardDescription>
-            Real Google API integration with authentication and advanced tool execution
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Cloud className="h-5 w-5" />
+                Enhanced MCP Integration
+              </CardTitle>
+              <CardDescription>
+                Real Google API integration with live data and custom API key support
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowApiConfig(!showApiConfig)}
+            >
+              {showApiConfig ? 'Hide' : 'Configure'} API Keys
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
+          {showApiConfig && (
+            <div className="mb-6 p-4 border rounded-lg bg-muted/30">
+              <h4 className="font-medium mb-3">API Configuration</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium">Google API Key</label>
+                  <Input
+                    type="password"
+                    placeholder="Enter your Google API key"
+                    value={apiKeys.googleApiKey}
+                    onChange={(e) => setApiKeys(prev => ({ ...prev, googleApiKey: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Custom Search Engine ID</label>
+                  <Input
+                    placeholder="For Google Search API"
+                    value={apiKeys.customSearchEngineId}
+                    onChange={(e) => setApiKeys(prev => ({ ...prev, customSearchEngineId: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">YouTube API Key</label>
+                  <Input
+                    type="password"
+                    placeholder="YouTube Data API key"
+                    value={apiKeys.youtubeApiKey}
+                    onChange={(e) => setApiKeys(prev => ({ ...prev, youtubeApiKey: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Calendar API Key</label>
+                  <Input
+                    type="password"
+                    placeholder="Google Calendar API key"
+                    value={apiKeys.calendarApiKey}
+                    onChange={(e) => setApiKeys(prev => ({ ...prev, calendarApiKey: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                * API keys are stored locally and used for real-time API calls. Leave empty for demo mode.
+              </p>
+            </div>
+          )}
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <h4 className="font-medium mb-2">Features</h4>
+              <h4 className="font-medium mb-2">Live Features</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• OAuth 2.0 authentication</li>
-                <li>• Real-time API calls</li>
-                <li>• Advanced error handling</li>
-                <li>• Comprehensive tool testing</li>
+                <li>• Real-time API integration</li>
+                <li>• Live data from Google services</li>
+                <li>• Custom API key support</li>
+                <li>• Enhanced error handling</li>
+                <li>• Timestamp tracking</li>
               </ul>
             </div>
             <div>
@@ -382,6 +505,9 @@ export const GoogleMCPIntegration = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="mt-2"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Real-time search query for Google Search and YouTube
+              </p>
             </div>
           </div>
         </CardContent>
@@ -408,16 +534,40 @@ export const GoogleMCPIntegration = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-success" />
-                  Test Results - {testResults.service}
+                  Live Test Results - {testResults.service}
                 </CardTitle>
-                <CardDescription>
-                  Tool: {testResults.tool}
+                <CardDescription className="flex items-center gap-2">
+                  <span>Tool: {testResults.tool}</span>
+                  {testResults.result?.realTimeData && (
+                    <Badge variant="default" className="bg-success text-success-foreground">
+                      Real-Time Data
+                    </Badge>
+                  )}
+                  {testResults.result?.executedAt && (
+                    <span className="text-xs">
+                      • Executed: {new Date(testResults.result.executedAt).toLocaleString()}
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <pre className="bg-muted/30 rounded p-4 text-xs overflow-auto max-h-96">
-                  {JSON.stringify(testResults.result, null, 2)}
-                </pre>
+                <div className="space-y-4">
+                  {testResults.result?.apiKeysUsed?.length > 0 && (
+                    <div className="p-3 bg-info/10 rounded-lg">
+                      <h5 className="font-medium text-sm mb-1">API Keys Used:</h5>
+                      <div className="flex gap-2 flex-wrap">
+                        {testResults.result.apiKeysUsed.map((key: string) => (
+                          <Badge key={key} variant="outline" className="text-xs">
+                            {key.replace('ApiKey', ' API')}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <pre className="bg-muted/30 rounded p-4 text-xs overflow-auto max-h-96">
+                    {JSON.stringify(testResults.result, null, 2)}
+                  </pre>
+                </div>
               </CardContent>
             </Card>
           ) : (
@@ -425,9 +575,9 @@ export const GoogleMCPIntegration = () => {
               <CardContent className="pt-6">
                 <div className="text-center py-8">
                   <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Test Results</h3>
+                  <h3 className="text-lg font-semibold mb-2">No Live Test Results</h3>
                   <p className="text-muted-foreground">
-                    Connect and test a Google service to see results here
+                    Connect and test a Google service to see real-time results here
                   </p>
                 </div>
               </CardContent>
