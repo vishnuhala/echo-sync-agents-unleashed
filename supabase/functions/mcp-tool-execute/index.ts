@@ -38,17 +38,15 @@ serve(async (req) => {
       throw new Error('MCP server not found or access denied');
     }
 
-    if (server.status !== 'connected') {
-      throw new Error('MCP server is not connected');
-    }
-
-    console.log(`Executing tool ${toolName} on MCP server: ${server.name}`);
+    // Allow execution even if not connected for demo purposes
+    console.log(`Executing tool ${toolName} on MCP server: ${server.name} (status: ${server.status})`);
 
     // Find the tool in the server's tools
     const tools = Array.isArray(server.tools) ? server.tools : [];
     const tool = tools.find((t: any) => t.name === toolName);
 
-    if (!tool) {
+    // If tool not found but this is a Google service, allow execution
+    if (!tool && !server.name.toLowerCase().includes('google')) {
       throw new Error(`Tool ${toolName} not found on server ${server.name}`);
     }
 
@@ -57,31 +55,98 @@ serve(async (req) => {
       let result: any = {};
       
       // Check if this is a Google service and route to Google API proxy
-      if (server.name.toLowerCase().includes('google')) {
-        const googleService = server.name.toLowerCase()
-          .replace('google ', '')
-          .replace(' api', '')
-          .replace(' search', 'search')
-          .replace(' calendar', 'calendar')
-          .replace(' gmail', 'gmail');
+      if (server.name.toLowerCase().includes('google') || server.endpoint?.includes('google')) {
+        console.log('Executing Google service tool:', toolName, 'with params:', parameters);
+        
+        // Determine service type from server name, endpoint, or parameters
+        let serviceType = parameters.service || 'search';
+        
+        const serverName = server.name.toLowerCase();
+        const endpoint = server.endpoint?.toLowerCase() || '';
+        
+        // Override with server-specific detection if not in parameters
+        if (!parameters.service) {
+          if (serverName.includes('calendar') || endpoint.includes('calendar')) serviceType = 'calendar';
+          else if (serverName.includes('gmail') || endpoint.includes('gmail')) serviceType = 'gmail';
+          else if (serverName.includes('docs') || endpoint.includes('docs')) serviceType = 'docs';
+          else if (serverName.includes('maps') || endpoint.includes('maps')) serviceType = 'maps';
+          else if (serverName.includes('youtube') || endpoint.includes('youtube')) serviceType = 'youtube';
+          else if (serverName.includes('search') || endpoint.includes('search')) serviceType = 'search';
+        }
+        
+        let methodName = parameters.method || toolName;
+        
+        console.log(`Detected Google service: ${serviceType}, method: ${methodName}`);
         
         try {
-          const { data, error } = await supabase.functions.invoke('google-mcp-proxy', {
-            body: {
-              service: googleService,
-              method: toolName,
-              endpoint: server.endpoint,
-              parameters: parameters,
+          // Call the Google MCP proxy directly via HTTP
+          const proxyUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-mcp-proxy`;
+          
+          const requestBody = {
+            service: serviceType,
+            method: methodName,
+            endpoint: server.endpoint,
+            parameters: {
+              ...parameters,
               userId: userId
-            }
+            },
+            userId: userId
+          };
+          
+          console.log('Calling Google proxy with:', requestBody);
+          
+          const response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
+            },
+            body: JSON.stringify(requestBody)
           });
-
-          if (error) throw error;
-          result = data.data || data;
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Proxy error response:', errorText);
+            throw new Error(`Proxy response: ${response.status} - ${errorText}`);
+          }
+          
+          const proxyResult = await response.json();
+          console.log('Google proxy result success:', proxyResult.success);
+          
+          if (proxyResult.success) {
+            result = {
+              success: true,
+              data: proxyResult.data,
+              metadata: {
+                executedAt: proxyResult.timestamp,
+                service: `google-${serviceType}`,
+                method: methodName,
+                realTimeData: true,
+                apiConnection: 'live'
+              }
+            };
+          } else {
+            throw new Error(proxyResult.error || 'Google API call failed');
+          }
+          
         } catch (googleError) {
-          console.error('Google API integration error:', googleError);
+          console.error('Google service execution failed:', googleError);
+          
           // Fallback to enhanced mock data
-          result = generateEnhancedGoogleMockResponse(googleService, toolName, parameters);
+          try {
+            result = generateEnhancedGoogleMockResponse(serviceType, toolName, parameters);
+            result.metadata = {
+              ...result.metadata,
+              error: googleError.message,
+              fallbackUsed: true,
+              demoMode: true,
+              apiConnection: 'mock'
+            };
+            console.log('Using mock fallback for Google service');
+          } catch (mockError) {
+            console.error('Mock fallback also failed:', mockError);
+            throw new Error(`Google service failed: ${googleError.message}`);
+          }
         }
       } else if (toolName.includes('search') || toolName === 'web_search') {
         result = {
@@ -157,37 +222,6 @@ serve(async (req) => {
           ],
           path: parameters.path || "/demo-files",
           total_files: 3
-        };
-      } else if (toolName.includes('memory') || toolName.includes('store')) {
-        result = {
-          success: true,
-          stored: true,
-          memory_id: "mem_" + Date.now(),
-          content: parameters.content || "Demo content stored",
-          context: parameters.context || "Demo context",
-          timestamp: new Date().toISOString()
-        };
-      } else if (toolName.includes('message') || toolName.includes('send')) {
-        result = {
-          success: true,
-          message_sent: true,
-          channel: parameters.channel || "#general",
-          message: parameters.message || "Hello from MCP!",
-          timestamp: new Date().toISOString()
-        };
-      } else if (toolName.includes('ping') || toolName.includes('test')) {
-        result = {
-          success: true,
-          status: 'connected',
-          latency: Math.round(Math.random() * 50 + 10) + 'ms',
-          server_info: {
-            name: server.name,
-            endpoint: server.endpoint,
-            version: '2.1.0',
-            uptime: '99.97%',
-            load: '23%'
-          },
-          timestamp: new Date().toISOString()
         };
       } else {
         // Enhanced generic execution result
