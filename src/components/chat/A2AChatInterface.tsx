@@ -377,14 +377,21 @@ export const A2AChatInterface = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Auto-route to best agent</SelectItem>
-                {activeAgents.map((ua) => {
-                  const agent = agents.find(a => a.id === ua.agent_id);
-                  return (
-                    <SelectItem key={ua.agent_id} value={ua.agent_id}>
-                      {agent?.name || 'Unknown Agent'} ({agent?.role})
-                    </SelectItem>
-                  );
-                })}
+                {activeAgents.length > 0 ? (
+                  activeAgents.map((ua) => {
+                    const agent = agents.find(a => a.id === ua.agent_id);
+                    if (!agent) return null;
+                    return (
+                      <SelectItem key={ua.agent_id} value={ua.agent_id}>
+                        {agent.name} ({agent.role})
+                      </SelectItem>
+                    );
+                  })
+                ) : (
+                  <SelectItem value="no-agents" disabled>
+                    No active agents available
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
