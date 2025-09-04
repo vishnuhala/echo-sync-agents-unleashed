@@ -3,11 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAgents } from '@/hooks/useAgents';
 import { useA2A } from '@/hooks/useA2A';
 import { useMCP } from '@/hooks/useMCP';
+import { A2AChatInterface } from '@/components/chat/A2AChatInterface';
 import { 
   ArrowRight, 
   Bot, 
@@ -32,6 +34,7 @@ export const A2ACommunication = () => {
   const [selectedServerId, setSelectedServerId] = useState('');
   const [selectedToolName, setSelectedToolName] = useState('');
   const [toolParams, setToolParams] = useState<string>('{}');
+  const [activeTab, setActiveTab] = useState<'chat' | 'direct' | 'workflows'>('chat');
   const { toast } = useToast();
 
   const activeAgents = userAgents?.filter(ua => 
@@ -105,11 +108,33 @@ export const A2ACommunication = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Agent-to-Agent Communication</h2>
-        <p className="text-muted-foreground">Real-time communication between AI agents</p>
+        <p className="text-muted-foreground">Interactive agent coordination and real-time communication</p>
       </div>
 
-      {/* Send Message */}
-      <Card className="bg-gradient-card border-primary/10">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'chat' | 'direct' | 'workflows')} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="chat" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Interactive Chat
+          </TabsTrigger>
+          <TabsTrigger value="direct" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Direct Communication
+          </TabsTrigger>
+          <TabsTrigger value="workflows" className="flex items-center gap-2">
+            <Network className="h-4 w-4" />
+            Workflows & History
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="chat" className="space-y-4">
+          <A2AChatInterface />
+        </TabsContent>
+
+        <TabsContent value="direct" className="space-y-4">
+
+          {/* Send Message */}
+          <Card className="bg-gradient-card border-primary/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -228,10 +253,12 @@ export const A2ACommunication = () => {
             <ArrowRight className="h-4 w-4 mr-2" />
             {mode === 'direct' ? 'Send Message' : 'Send Tool Task'}
           </Button>
-        </CardContent>
-      </Card>
+          </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Workflows */}
+        <TabsContent value="workflows" className="space-y-4">
+          {/* Workflows */}
       <Card className="bg-gradient-card border-primary/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -329,8 +356,10 @@ export const A2ACommunication = () => {
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -19,12 +19,15 @@ import {
   Clock
 } from 'lucide-react';
 
+import { MCPChatInterface } from '@/components/chat/MCPChatInterface';
+
 export const MCPDemo = () => {
   const { servers, executeMCPTool } = useMCP();
   const { toast } = useToast();
   const [activeDemo, setActiveDemo] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [demoResults, setDemoResults] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'chat' | 'demos'>('chat');
 
   const runDemo = async (demoType: string, toolName: string, parameters: any) => {
     setActiveDemo(demoType);
@@ -240,11 +243,29 @@ export const MCPDemo = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">MCP Integration Demos</h2>
+        <h2 className="text-2xl font-bold">MCP Integration & Chat</h2>
         <p className="text-muted-foreground">
-          Live demonstrations of MCP servers working with real functionality for each sector
+          Interactive MCP assistant and live demonstrations with real functionality
         </p>
       </div>
+
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'chat' | 'demos')} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="chat" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Interactive Chat
+          </TabsTrigger>
+          <TabsTrigger value="demos" className="flex items-center gap-2">
+            <Play className="h-4 w-4" />
+            Live Demos
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="chat" className="space-y-4">
+          <MCPChatInterface />
+        </TabsContent>
+
+        <TabsContent value="demos" className="space-y-4">
 
       <Card className="bg-gradient-card border-primary/20">
         <CardHeader>
@@ -325,21 +346,23 @@ export const MCPDemo = () => {
         </TabsContent>
       </Tabs>
 
-      {demoResults && (
-        <Card className="bg-gradient-to-r from-success/5 to-primary/5 border-success/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-success" />
-              Demo Results
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="bg-muted/30 rounded p-4 text-xs overflow-auto max-h-60">
-              {JSON.stringify(demoResults, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
+          {demoResults && (
+            <Card className="bg-gradient-to-r from-success/5 to-primary/5 border-success/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-success" />
+                  Demo Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="bg-muted/30 rounded p-4 text-xs overflow-auto max-h-60">
+                  {JSON.stringify(demoResults, null, 2)}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
