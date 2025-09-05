@@ -376,7 +376,7 @@ export const A2AChatInterface = () => {
                 <SelectValue placeholder="Select specific agent (optional) or let me auto-route" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Auto-route to best agent</SelectItem>
+                <SelectItem value="auto-route">Auto-route to best agent</SelectItem>
                 {activeAgents.length > 0 ? (
                   activeAgents.map((ua) => {
                     const agent = agents.find(a => a.id === ua.agent_id);
