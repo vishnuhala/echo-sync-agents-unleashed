@@ -32,7 +32,7 @@ export const MCPChatInterface = () => {
     {
       id: '1',
       type: 'system',
-      content: 'Hello! I\'m your MCP assistant. I can help you search the web, access databases, and retrieve information from various sources. What would you like to know?',
+      content: 'Hello! I\'m your MCP assistant. I connect to real MCP servers to provide live functionality. Please ensure you have MCP servers properly connected and configured with valid endpoints to use this chat interface.',
       timestamp: new Date()
     }
   ]);
@@ -97,7 +97,7 @@ export const MCPChatInterface = () => {
     
     if (!server) {
       return {
-        content: "I don't have any connected MCP servers right now. Please connect some servers first to enable me to help you with searches, database queries, or file operations.",
+        content: "I don't have any connected MCP servers right now. To use this chat interface, you need to:\n\n1. Go to the MCP Servers tab\n2. Add and connect real MCP servers with valid endpoints\n3. Ensure the servers have tools configured\n\nMCP servers provide real-time access to external systems like search engines, databases, APIs, and file systems. Without connected servers, I cannot execute any tools or provide live functionality.",
         metadata: { error: 'No connected servers' }
       };
     }

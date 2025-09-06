@@ -245,7 +245,7 @@ export const MCPDemo = () => {
       <div>
         <h2 className="text-2xl font-bold">MCP Integration & Chat</h2>
         <p className="text-muted-foreground">
-          Interactive MCP assistant and live demonstrations with real functionality
+          Real MCP assistant connecting to actual MCP servers for live functionality. Requires properly configured MCP servers with valid endpoints.
         </p>
       </div>
 
@@ -271,10 +271,10 @@ export const MCPDemo = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-success" />
-            Real Working MCP Integration
+            Real MCP Server Integration
           </CardTitle>
           <CardDescription>
-            These demos connect to actual MCP servers and execute real tools. Make sure you have connected the required servers first.
+            These demos connect to actual MCP servers with real endpoints and execute live tools. No mock data - requires properly configured MCP servers to function. Connect MCP servers in the MCP Servers tab first.
           </CardDescription>
         </CardHeader>
         <CardContent>
