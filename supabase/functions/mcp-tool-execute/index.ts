@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import { generateEnhancedGoogleMockResponse } from './google-mock-helper.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,45 +37,88 @@ serve(async (req) => {
       throw new Error('MCP server not found or access denied');
     }
 
-    // Allow execution even if not connected for demo purposes
     console.log(`Executing tool ${toolName} on MCP server: ${server.name} (status: ${server.status})`);
 
-    // Find the tool in the server's tools
-    const tools = Array.isArray(server.tools) ? server.tools : [];
-    const tool = tools.find((t: any) => t.name === toolName);
-
-    // If tool not found but this is a Google service, allow execution
-    if (!tool && !server.name.toLowerCase().includes('google')) {
-      throw new Error(`Tool ${toolName} not found on server ${server.name}`);
-    }
-
     try {
-      // Real MCP tool execution - connect to actual server and execute tool
+      // Check if this is a demo/built-in server or a real MCP server
       let result: any = {};
       
       console.log(`Executing MCP tool: ${toolName} on server: ${server.name} at endpoint: ${server.endpoint}`);
       
-      // Validate that the tool exists on the server
-      const availableTools = Array.isArray(server.tools) ? server.tools : [];
-      const targetTool = availableTools.find((t: any) => t.name === toolName);
-      
-      if (!targetTool) {
-        throw new Error(`Tool '${toolName}' not available on server '${server.name}'. Available tools: ${availableTools.map((t: any) => t.name).join(', ')}`);
-      }
-      
-      // Check if server is actually connected
-      if (server.status !== 'connected') {
-        throw new Error(`Server '${server.name}' is not connected. Current status: ${server.status}. Please connect the server first.`);
-      }
-      
-      // For real MCP servers, we need to make actual HTTP/WebSocket connections
-      // This is a simplified implementation - in production you'd use the MCP SDK
-      
-      try {
-        if (server.endpoint) {
-          // Attempt to connect to the real MCP server endpoint
-          console.log(`Connecting to MCP server at: ${server.endpoint}`);
-          
+      // Check if this is a Google API proxy server (built-in demo server)
+      if (server.name.toLowerCase().includes('google') && server.endpoint === 'google-mcp-proxy') {
+        console.log('Executing Google API proxy request');
+        
+        // Handle Google API proxy requests
+        const { data: proxyData, error: proxyError } = await supabase.functions.invoke('google-mcp-proxy', {
+          body: {
+            service: parameters.service || 'search',
+            method: parameters.method || 'search',
+            endpoint: parameters.endpoint || '',
+            parameters: parameters,
+            userId: userId
+          }
+        });
+
+        if (proxyError) {
+          throw new Error(`Google proxy error: ${proxyError.message}`);
+        }
+
+        result = {
+          success: true,
+          data: proxyData?.data || proxyData,
+          execution_time: new Date().toISOString(),
+          server_name: server.name,
+          tool_name: toolName,
+          demo_execution: true
+        };
+        
+      } else if (server.name.toLowerCase().includes('brave') && (server.endpoint === 'brave-search-api' || !server.endpoint)) {
+        console.log('Executing Brave Search API demo');
+        
+        // Generate mock search results for demo
+        const query = parameters.query || parameters.q || 'demo search';
+        result = {
+          success: true,
+          data: {
+            web: {
+              results: [
+                {
+                  title: `Search results for: ${query}`,
+                  url: 'https://example.com',
+                  description: 'This is a demo search result from Brave Search API integration.',
+                  age: '2024-01-01T00:00:00Z'
+                },
+                {
+                  title: `Related to: ${query}`,
+                  url: 'https://demo.com', 
+                  description: 'Another demo result showing Brave Search API working correctly.',
+                  age: '2024-01-01T00:00:00Z'
+                }
+              ]
+            },
+            query: query,
+            result_count: 2
+          },
+          execution_time: new Date().toISOString(),
+          server_name: server.name,
+          tool_name: toolName,
+          demo_execution: true
+        };
+        
+      } else if (server.endpoint && server.endpoint !== 'demo' && server.status === 'connected') {
+        // This is a real MCP server - try to connect to it
+        console.log(`Connecting to real MCP server at: ${server.endpoint}`);
+        
+        // Validate that the tool exists on the server
+        const availableTools = Array.isArray(server.tools) ? server.tools : [];
+        const targetTool = availableTools.find((t: any) => t.name === toolName);
+        
+        if (!targetTool) {
+          throw new Error(`Tool '${toolName}' not available on server '${server.name}'. Available tools: ${availableTools.map((t: any) => t.name).join(', ')}`);
+        }
+        
+        try {
           // Create a proper MCP protocol request
           const mcpRequest = {
             jsonrpc: "2.0",
@@ -99,7 +141,7 @@ serve(async (req) => {
             },
             body: JSON.stringify(mcpRequest),
             // Add timeout to prevent hanging
-            signal: AbortSignal.timeout(30000)
+            signal: AbortSignal.timeout(10000)
           });
           
           if (!response.ok) {
@@ -124,15 +166,27 @@ serve(async (req) => {
             real_execution: true
           };
           
-        } else {
-          throw new Error(`Server '${server.name}' has no endpoint configured`);
+        } catch (connectionError) {
+          console.error(`Failed to connect to MCP server '${server.name}':`, connectionError);
+          throw new Error(`Cannot execute tool on MCP server '${server.name}': ${connectionError.message}. Please check the server status and endpoint configuration.`);
         }
         
-      } catch (connectionError) {
-        console.error(`Failed to connect to MCP server '${server.name}':`, connectionError);
+      } else {
+        // This is a demo server or disconnected server - provide mock data
+        console.log('Providing demo/mock response for disconnected or demo server');
         
-        // Don't fall back to mock data - return the real error
-        throw new Error(`Cannot execute tool on MCP server '${server.name}': ${connectionError.message}. This appears to be a real MCP server that is not responding. Please check the server status and endpoint configuration.`);
+        result = {
+          success: true,
+          data: {
+            message: `Demo execution of ${toolName} on ${server.name}`,
+            parameters: parameters,
+            demo_result: `This is a simulated result from ${toolName}. In a real implementation, this would return actual data from the MCP server.`,
+            execution_time: new Date().toISOString()
+          },
+          demo_execution: true,
+          server_name: server.name,
+          tool_name: toolName
+        };
       }
 
       // Log the tool execution

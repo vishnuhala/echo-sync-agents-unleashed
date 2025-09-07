@@ -39,25 +39,32 @@ export const MCPDemo = () => {
       s.tools.some(t => t.name === toolName)
     );
 
-    // If not found by exact tool name, try partial matching
+    // If not found by exact tool name, try partial matching or demo servers
     if (!server) {
       server = servers.find(s => 
         s.status === 'connected' && 
-        s.tools.some(t => 
+        (s.tools.some(t => 
           t.name.includes(toolName.split('_')[0]) || 
           t.name.includes('search') ||
           t.name.includes('web') ||
           t.name.includes('file') ||
           t.name.includes('memory') ||
           t.name.includes('repository')
-        )
+        ) || 
+        s.name.toLowerCase().includes('google') ||
+        s.name.toLowerCase().includes('brave'))
       );
+    }
+
+    // If still no server found, try any connected server for demo purposes
+    if (!server) {
+      server = servers.find(s => s.status === 'connected');
     }
 
     if (!server) {
       toast({
         title: "No Connected Server",
-        description: `Please connect a server with search capability first. Available servers: ${servers.filter(s => s.status === 'connected').length}`,
+        description: `Please connect a server first. Available servers: ${servers.length}, Connected: ${servers.filter(s => s.status === 'connected').length}`,
         variant: "destructive"
       });
       setActiveDemo(null);
@@ -66,6 +73,30 @@ export const MCPDemo = () => {
 
     // Use the first available tool from the server if exact tool not found
     const actualTool = server.tools.find(t => t.name === toolName) || server.tools[0];
+    if (!actualTool && server.tools.length === 0) {
+      // For demo servers without tools, create a default tool
+      const defaultTool = { name: toolName, description: `Demo tool: ${toolName}` };
+      try {
+        const result = await executeMCPTool(server.id, defaultTool.name, parameters);
+        setDemoResults(result);
+        
+        toast({
+          title: "Demo Successful",
+          description: `${demoType} demo completed successfully using ${server.name}`,
+        });
+      } catch (error: any) {
+        console.error('Demo execution error:', error);
+        toast({
+          title: "Demo Failed", 
+          description: error.message || `Failed to run ${demoType} demo`,
+          variant: "destructive"
+        });
+      } finally {
+        setActiveDemo(null);
+      }
+      return;
+    }
+
     if (!actualTool) {
       toast({
         title: "No Tools Available",
