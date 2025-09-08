@@ -61,18 +61,14 @@ serve(async (req) => {
 
     // Log the interaction
     await supabaseClient
-      .from('agent_interactions')
+      .from('mcp_interactions')
       .insert({
         user_id: userId,
-        agent_id: null, // Google MCP proxy
-        input: `Google ${service} API: ${method}`,
-        output: JSON.stringify(apiResponse),
-        metadata: {
-          service: `google-${service}`,
-          method: method,
-          parameters: parameters,
-          execution_type: 'google_mcp_proxy'
-        }
+        service: `google-${service}`,
+        method: method,
+        parameters: parameters,
+        response: apiResponse,
+        success: true
       });
 
     return new Response(JSON.stringify({
