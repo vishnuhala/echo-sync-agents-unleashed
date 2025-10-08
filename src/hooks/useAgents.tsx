@@ -112,6 +112,58 @@ export function AgentsProvider({ children }: { children: ReactNode }) {
     };
 
     loadData();
+
+    // Set up real-time subscriptions
+    const agentsChannel = supabase
+      .channel('agents_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agents'
+        },
+        () => {
+          fetchAgents();
+        }
+      )
+      .subscribe();
+
+    const userAgentsChannel = supabase
+      .channel('user_agents_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_agents'
+        },
+        () => {
+          fetchUserAgents();
+        }
+      )
+      .subscribe();
+
+    const interactionsChannel = supabase
+      .channel('agent_interactions_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agent_interactions'
+        },
+        () => {
+          fetchInteractions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(agentsChannel);
+      supabase.removeChannel(userAgentsChannel);
+      supabase.removeChannel(interactionsChannel);
+    };
   }, [profile?.role, user]);
 
   const activateAgent = async (agentId: string) => {
