@@ -121,7 +121,7 @@ export type Database = {
       }
       agent_interactions: {
         Row: {
-          agent_id: string
+          agent_id: string | null
           created_at: string
           document_id: string | null
           id: string
@@ -131,7 +131,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          agent_id: string
+          agent_id?: string | null
           created_at?: string
           document_id?: string | null
           id?: string
@@ -141,7 +141,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          agent_id?: string
+          agent_id?: string | null
           created_at?: string
           document_id?: string | null
           id?: string
