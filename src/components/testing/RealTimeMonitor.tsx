@@ -52,15 +52,19 @@ export const RealTimeMonitor = () => {
   }, [agents, userAgents, interactions]);
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-2">
-        <Activity className="h-6 w-6 text-primary" />
-        <h2 className="text-2xl font-bold">Real-Time System Monitor</h2>
-        <Badge variant="outline" className="ml-auto">
-          <Zap className="h-3 w-3 mr-1" />
-          Live Updates
-        </Badge>
-      </div>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Activity className="h-6 w-6 text-primary" />
+          <CardTitle>Real-Time System Monitor</CardTitle>
+          <Badge variant="outline" className="ml-auto">
+            <Zap className="h-3 w-3 mr-1" />
+            Live Updates
+          </Badge>
+        </div>
+        <CardDescription>Monitor live activity across all systems</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* MCP Monitor */}
@@ -217,6 +221,7 @@ export const RealTimeMonitor = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
