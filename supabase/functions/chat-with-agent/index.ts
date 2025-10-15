@@ -157,19 +157,8 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in chat-with-agent function:', error);
-    
-    // Sanitize error messages for security - don't expose internal details
-    let userMessage = 'An error occurred. Please try again.';
-    if (error.message?.includes('Agent not found')) {
-      userMessage = 'Resource not found.';
-    } else if (error.message?.includes('Missing required parameters')) {
-      userMessage = 'Invalid request. Please check your input.';
-    } else if (error.message?.includes('API')) {
-      userMessage = 'Service temporarily unavailable. Please try again later.';
-    }
-    
     return new Response(JSON.stringify({ 
-      error: userMessage
+      error: error.message || 'Internal server error' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
