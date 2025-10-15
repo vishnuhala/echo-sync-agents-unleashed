@@ -107,8 +107,7 @@ serve(async (req) => {
           if (!response.ok) {
             const errorText = await response.text();
             console.error('Proxy error response:', errorText);
-            // Don't expose detailed proxy errors to client
-            throw new Error('External service request failed');
+            throw new Error(`Proxy response: ${response.status} - ${errorText}`);
           }
           
           const proxyResult = await response.json();
@@ -377,23 +376,13 @@ serve(async (req) => {
 
     } catch (executionError) {
       console.error(`Failed to execute tool ${toolName} on MCP server ${server.name}:`, executionError);
-      // Don't expose internal execution details
-      throw new Error('Tool execution failed. Please try again.');
+      throw new Error(`Tool execution failed: ${executionError.message}`);
     }
 
   } catch (error) {
     console.error('Error executing MCP tool:', error);
-    
-    // Sanitize error messages for security
-    let userMessage = 'An error occurred. Please try again.';
-    if (error.message?.includes('not found') || error.message?.includes('access denied')) {
-      userMessage = 'Resource not found or access denied.';
-    } else if (error.message?.includes('Tool execution failed')) {
-      userMessage = 'Tool execution failed. Please try again.';
-    }
-    
     return new Response(JSON.stringify({ 
-      error: userMessage
+      error: error.message || 'Internal server error' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
