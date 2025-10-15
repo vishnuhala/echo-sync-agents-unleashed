@@ -9,9 +9,11 @@ import { AgentCreator } from '@/components/agents/AgentCreator';
 import { RAGSystem } from '@/components/rag/RAGSystem';
 import { ComprehensiveGuide } from '@/components/guides/ComprehensiveGuide';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Server, Users, Bot, Database, List, BookOpen, Play } from 'lucide-react';
+import { Server, Users, Bot, Database, List, BookOpen, Play, FlaskConical } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function MCPEditor() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gradient-main">
       <div className="container mx-auto px-4 py-8">
@@ -38,10 +40,6 @@ export default function MCPEditor() {
               <Server className="h-4 w-4" />
               My MCP Servers
             </TabsTrigger>
-            <TabsTrigger value="google" className="flex items-center gap-2">
-              <Server className="h-4 w-4" />
-              Google SDK
-            </TabsTrigger>
             <TabsTrigger value="demo" className="flex items-center gap-2">
               <Play className="h-4 w-4" />
               Live Demos
@@ -58,6 +56,10 @@ export default function MCPEditor() {
               <Database className="h-4 w-4" />
               RAG System
             </TabsTrigger>
+            <TabsTrigger value="testing" className="flex items-center gap-2" onClick={() => navigate('/testing')}>
+              <FlaskConical className="h-4 w-4" />
+              Testing
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="guide" className="space-y-6">
@@ -70,10 +72,6 @@ export default function MCPEditor() {
 
           <TabsContent value="mcp" className="space-y-6">
             <MCPServerManager />
-          </TabsContent>
-
-          <TabsContent value="google" className="space-y-6">
-            <GoogleMCPIntegration />
           </TabsContent>
 
           <TabsContent value="demo" className="space-y-6">

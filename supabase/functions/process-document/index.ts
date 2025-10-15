@@ -158,8 +158,8 @@ serve(async (req) => {
         filePath
       });
       
-      // Update document with a more helpful error message
-      const errorMessage = `Document Processing Error\n\nThe document was uploaded successfully but encountered an issue during processing.\n\nTechnical Details:\n- Document ID: ${documentId}\n- File Type: ${fileType}\n- Error: ${processingError.message}\n\nThe document file is still available and can be downloaded. You may try uploading again or contact support if the issue persists.`;
+      // Update document with a generic error message (don't expose internal details)
+      const errorMessage = `Document Processing Error\n\nThe document was uploaded successfully but encountered an issue during processing.\n\nThe document file is still available and can be downloaded. You may try uploading again or contact support if the issue persists.`;
       
       await supabase
         .from('documents')
@@ -179,8 +179,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in process-document function:', error);
+    
+    // Sanitize error messages for security
     return new Response(JSON.stringify({ 
-      error: error.message || 'Internal server error' 
+      error: 'An error occurred while processing your document. Please try again.'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
