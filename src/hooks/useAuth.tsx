@@ -119,14 +119,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: new Error('No user logged in') };
+    if (!user) {
+      console.error('No user logged in');
+      return { error: new Error('No user logged in') };
+    }
 
-    const { error } = await supabase
+    console.log('Updating profile for user:', user.id, 'with updates:', updates);
+
+    const { data, error } = await supabase
       .from('profiles')
       .update(updates)
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .select();
 
-    if (!error) {
+    if (error) {
+      console.error('Error updating profile:', error);
+    } else {
+      console.log('Profile updated successfully:', data);
       await refreshProfile();
     }
 
