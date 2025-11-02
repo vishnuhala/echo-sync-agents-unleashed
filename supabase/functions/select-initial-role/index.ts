@@ -57,14 +57,14 @@ serve(async (req) => {
 
     console.log(`Role selection request for user ${user.id}: ${role}`);
 
-    // Check if user already has a role assigned
-    const { data: existingRole } = await supabase
-      .from('user_roles')
-      .select('role')
+    // Check if user has completed onboarding
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed')
       .eq('user_id', user.id)
       .single();
 
-    if (existingRole) {
+    if (profile?.onboarding_completed) {
       return new Response(JSON.stringify({ 
         error: 'Role already assigned. Contact support to change your role.' 
       }), {
@@ -73,9 +73,30 @@ serve(async (req) => {
       });
     }
 
-    // Use service role client to insert into user_roles (bypasses RLS)
+    // Use service role client to manage user_roles (bypasses RLS)
     const supabaseServiceRole = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Check if user already has a role (during onboarding)
+    const { data: existingRole } = await supabaseServiceRole
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (existingRole) {
+      // Delete existing role if onboarding not completed (allow role change during onboarding)
+      const { error: deleteError } = await supabaseServiceRole
+        .from('user_roles')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (deleteError) {
+        console.error('Error deleting existing role:', deleteError);
+        throw new Error('Failed to update role');
+      }
+    }
+
+    // Insert new role
     const { error: insertError } = await supabaseServiceRole
       .from('user_roles')
       .insert({
