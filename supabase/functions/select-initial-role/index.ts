@@ -37,32 +37,51 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    // Create an auth-aware client (try anon, then fallback to service key)
+    const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    // Verify authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    let userId: string | null = null;
+
+    // Attempt with anon key first
+    const anonRes = await supabaseAnon.auth.getUser();
+    if (anonRes.data?.user) {
+      userId = anonRes.data.user.id;
+    } else {
+      console.warn('Anon auth.getUser() failed, attempting with service role');
+      const supabaseServiceAuth = createClient(supabaseUrl, supabaseServiceKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      const svcRes = await supabaseServiceAuth.auth.getUser();
+      if (svcRes.data?.user) {
+        userId = svcRes.data.user.id;
+      }
+    }
+
+    if (!userId) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: corsHeaders
       });
     }
 
+    // Use anon client (with JWT) for RLS-aware operations
+    const supabase = supabaseAnon;
+
     // Validate request body
     const body = await req.json();
     const validated = requestSchema.parse(body);
     const { role } = validated;
 
-    console.log(`Role selection request for user ${user.id}: ${role}`);
+    console.log(`Role selection request for user ${userId}: ${role}`);
 
     // Check if user has completed onboarding
     const { data: profile } = await supabase
       .from('profiles')
       .select('onboarding_completed')
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', userId)
+      .maybeSingle();
 
     if (profile?.onboarding_completed) {
       return new Response(JSON.stringify({ 
@@ -80,15 +99,15 @@ serve(async (req) => {
     const { data: existingRole } = await supabaseServiceRole
       .from('user_roles')
       .select('id')
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', userId)
+      .maybeSingle();
 
     if (existingRole) {
       // Delete existing role if onboarding not completed (allow role change during onboarding)
       const { error: deleteError } = await supabaseServiceRole
         .from('user_roles')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
 
       if (deleteError) {
         console.error('Error deleting existing role:', deleteError);
@@ -100,9 +119,9 @@ serve(async (req) => {
     const { error: insertError } = await supabaseServiceRole
       .from('user_roles')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         role: role,
-        assigned_by: user.id, // Self-assigned during onboarding
+        assigned_by: userId, // Self-assigned during onboarding
       });
 
     if (insertError) {
@@ -114,14 +133,14 @@ serve(async (req) => {
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ onboarding_completed: true })
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
     if (profileError) {
       console.error('Error updating profile:', profileError);
       // Don't fail the request if profile update fails
     }
 
-    console.log(`Successfully assigned role ${role} to user ${user.id}`);
+    console.log(`Successfully assigned role ${role} to user ${userId}`);
 
     return new Response(JSON.stringify({
       success: true,

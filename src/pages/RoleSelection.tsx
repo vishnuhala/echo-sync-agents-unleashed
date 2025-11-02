@@ -84,9 +84,19 @@ const RoleSelection = () => {
       }
 
       // Call the secure edge function to assign role
-      const { data, error } = await supabase.functions.invoke('select-initial-role', {
+      let { data, error } = await supabase.functions.invoke('select-initial-role', {
         body: { role: selectedRole }
       });
+
+      // If unauthorized, try to refresh the session once and retry
+      if (error && (error.message?.includes('Unauthorized') || (error as any)?.context?.response?.status === 401)) {
+        await supabase.auth.refreshSession();
+        const retry = await supabase.functions.invoke('select-initial-role', {
+          body: { role: selectedRole }
+        });
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (error) {
         console.error('Role selection error:', error);
