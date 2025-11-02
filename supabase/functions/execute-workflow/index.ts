@@ -1,11 +1,16 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  workflowId: z.string().uuid('Invalid workflow ID'),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -14,16 +19,36 @@ serve(async (req) => {
   }
 
   try {
-    const { workflowId, userId } = await req.json();
-
-    if (!workflowId || !userId) {
-      throw new Error('Missing required parameters');
+    // Get Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: corsHeaders
+      });
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with auth
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
+    // Validate request body
+    const body = await req.json();
+    const validated = requestSchema.parse(body);
+    const { workflowId } = validated;
+    const userId = user.id; // Use server-verified user ID
 
     // Fetch the workflow
     const { data: workflow, error: workflowError } = await supabase
@@ -133,9 +158,16 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in execute-workflow function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message || 'Internal server error' 
-    }), {
+    
+    // Handle validation errors
+    if (error.name === 'ZodError') {
+      return new Response(JSON.stringify({ error: 'Invalid input provided' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    return new Response(JSON.stringify({ error: 'Failed to execute workflow' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
