@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/database';
 import { TrendingUp, GraduationCap, Rocket, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const roleData = {
   trader: {
@@ -46,7 +47,7 @@ const roleData = {
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { updateProfile, profile } = useAuth();
+  const { refreshProfile, profile } = useAuth();
   const navigate = useNavigate();
 
   const handleRoleSelect = async () => {
@@ -54,18 +55,27 @@ const RoleSelection = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await updateProfile({
-        role: selectedRole,
-        onboarding_completed: true,
+      const { data, error } = await supabase.functions.invoke('assign-role', {
+        body: { role: selectedRole }
       });
 
       if (error) {
+        console.error('Error assigning role:', error);
         toast({
           title: "Error",
-          description: "Failed to update your role. Please try again.",
+          description: error.message || "Failed to assign your role. Please try again.",
+          variant: "destructive",
+        });
+      } else if (data?.error) {
+        toast({
+          title: "Error",
+          description: data.error,
           variant: "destructive",
         });
       } else {
+        // Refresh profile to get updated data
+        await refreshProfile();
+        
         toast({
           title: "Role Selected!",
           description: `Welcome to EchoSync as a ${roleData[selectedRole].title}`,
@@ -73,6 +83,7 @@ const RoleSelection = () => {
         navigate('/dashboard');
       }
     } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
