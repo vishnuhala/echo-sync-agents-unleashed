@@ -39,6 +39,14 @@ export const GoogleMCPIntegration = () => {
   const [testResults, setTestResults] = useState<any>(null);
   const [testingService, setTestingService] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('React best practices 2024');
+  const [apiKeys, setApiKeys] = useState({
+    googleApiKey: '',
+    customSearchEngineId: '',
+    youtubeApiKey: '',
+    calendarApiKey: '',
+    gmailApiKey: ''
+  });
+  const [showApiConfig, setShowApiConfig] = useState(false);
 
   const googleServices: GoogleService[] = [
     {
@@ -273,6 +281,8 @@ export const GoogleMCPIntegration = () => {
             num: 10,
             timestamp: currentTime,
             realTime: true,
+            apiKey: apiKeys.googleApiKey || undefined,
+            searchEngineId: apiKeys.customSearchEngineId || undefined,
             service: 'search',
             method: 'web_search'
           };
@@ -283,6 +293,7 @@ export const GoogleMCPIntegration = () => {
             maxResults: 10,
             timeMin: currentTime,
             realTime: true,
+            apiKey: apiKeys.calendarApiKey || undefined,
             service: 'calendar',
             method: 'list_events'
           };
@@ -293,6 +304,7 @@ export const GoogleMCPIntegration = () => {
             maxResults: 10, 
             q: 'is:unread',
             realTime: true,
+            apiKey: apiKeys.gmailApiKey || undefined,
             service: 'gmail',
             method: 'read_emails'
           };
@@ -325,6 +337,7 @@ export const GoogleMCPIntegration = () => {
             order: 'date',
             publishedAfter: new Date(Date.now() - 24*60*60*1000).toISOString(),
             realTime: true,
+            apiKey: apiKeys.youtubeApiKey || undefined,
             service: 'youtube',
             method: 'search_videos'
           };
@@ -347,6 +360,7 @@ export const GoogleMCPIntegration = () => {
         service: service.name,
         tool: toolName,
         userId: userId,
+        apiKeysUsed: Object.keys(apiKeys).filter(key => apiKeys[key as keyof typeof apiKeys]),
         serverStatus: server.status,
         demoMode: server.status !== 'connected'
       };
@@ -481,18 +495,75 @@ export const GoogleMCPIntegration = () => {
                 Enhanced MCP Integration
               </CardTitle>
               <CardDescription>
-                Real Google API integration with live data via server-side API keys
+                Real Google API integration with live data and custom API key support
               </CardDescription>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowApiConfig(!showApiConfig)}
+            >
+              {showApiConfig ? 'Hide' : 'Configure'} API Keys
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
+          {showApiConfig && (
+            <div className="mb-6 p-4 border rounded-lg bg-muted/30">
+              <h4 className="font-medium mb-3">API Configuration</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium">Google API Key</label>
+                  <Input
+                    type="password"
+                    placeholder="Enter your Google API key"
+                    value={apiKeys.googleApiKey}
+                    onChange={(e) => setApiKeys(prev => ({ ...prev, googleApiKey: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Custom Search Engine ID</label>
+                  <Input
+                    placeholder="For Google Search API"
+                    value={apiKeys.customSearchEngineId}
+                    onChange={(e) => setApiKeys(prev => ({ ...prev, customSearchEngineId: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">YouTube API Key</label>
+                  <Input
+                    type="password"
+                    placeholder="YouTube Data API key"
+                    value={apiKeys.youtubeApiKey}
+                    onChange={(e) => setApiKeys(prev => ({ ...prev, youtubeApiKey: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Calendar API Key</label>
+                  <Input
+                    type="password"
+                    placeholder="Google Calendar API key"
+                    value={apiKeys.calendarApiKey}
+                    onChange={(e) => setApiKeys(prev => ({ ...prev, calendarApiKey: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                * API keys are stored locally and used for real-time API calls. Leave empty for demo mode.
+              </p>
+            </div>
+          )}
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <h4 className="font-medium mb-2">Live Features</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Real-time API integration via server-side keys</li>
+                <li>• Real-time API integration</li>
                 <li>• Live data from Google services</li>
+                <li>• Custom API key support</li>
                 <li>• Enhanced error handling</li>
                 <li>• Timestamp tracking</li>
               </ul>
@@ -552,6 +623,18 @@ export const GoogleMCPIntegration = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  {testResults.result?.apiKeysUsed?.length > 0 && (
+                    <div className="p-3 bg-info/10 rounded-lg">
+                      <h5 className="font-medium text-sm mb-1">API Keys Used:</h5>
+                      <div className="flex gap-2 flex-wrap">
+                        {testResults.result.apiKeysUsed.map((key: string) => (
+                          <Badge key={key} variant="outline" className="text-xs">
+                            {key.replace('ApiKey', ' API')}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <pre className="bg-muted/30 rounded p-4 text-xs overflow-auto max-h-96">
                     {JSON.stringify(testResults.result, null, 2)}
                   </pre>
