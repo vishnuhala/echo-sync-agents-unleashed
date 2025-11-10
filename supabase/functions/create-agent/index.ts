@@ -1,25 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const requestSchema = z.object({
-  name: z.string().min(1).max(200, 'Name too long'),
-  description: z.string().min(1).max(1000, 'Description too long'),
-  framework: z.string().min(1).max(100),
-  role: z.string().optional().default('assistant'),
-  capabilities: z.array(z.string()).optional().default([]),
-  ragEnabled: z.boolean().optional().default(false),
-  tools: z.array(z.string()).optional().default([]),
-  systemPrompt: z.string().max(10000, 'System prompt too long').optional().default(''),
-  model: z.string().optional().default('gpt-4o-mini'),
-  temperature: z.number().min(0).max(2).optional().default(0.7),
-});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -28,48 +14,28 @@ serve(async (req) => {
   }
 
   try {
-    // Get Authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: corsHeaders
-      });
-    }
-
-    // Initialize Supabase client with auth
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    // Verify authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: corsHeaders
-      });
-    }
-
-    // Validate request body
-    const body = await req.json();
-    const validated = requestSchema.parse(body);
-    const userId = user.id; // Use server-verified user ID
-    
     const {
       name,
       description,
       framework,
-      role,
-      capabilities,
-      ragEnabled,
-      tools,
-      systemPrompt,
-      model,
-      temperature
-    } = validated;
+      role = 'assistant',
+      capabilities = [],
+      ragEnabled = false,
+      tools = [],
+      systemPrompt = '',
+      model = 'gpt-4o-mini',
+      temperature = 0.7,
+      userId
+    } = await req.json();
+
+    if (!name || !description || !userId) {
+      throw new Error('Missing required fields: name, description, or userId');
+    }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log(`Creating agent: ${name} for user: ${userId}`);
 
@@ -153,16 +119,9 @@ Be helpful, accurate, and professional in all interactions.`;
 
   } catch (error) {
     console.error('Error in create-agent function:', error);
-    
-    // Handle validation errors
-    if (error.name === 'ZodError') {
-      return new Response(JSON.stringify({ error: 'Invalid input provided' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    
-    return new Response(JSON.stringify({ error: 'Failed to create agent' }), {
+    return new Response(JSON.stringify({
+      error: error.message || 'Internal server error'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
