@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/database';
 import { TrendingUp, GraduationCap, Rocket, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 const roleData = {
   trader: {
@@ -47,7 +46,7 @@ const roleData = {
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { refreshProfile, profile } = useAuth();
+  const { updateProfile, profile } = useAuth();
   const navigate = useNavigate();
 
   const handleRoleSelect = async () => {
@@ -55,40 +54,18 @@ const RoleSelection = () => {
 
     setIsLoading(true);
     try {
-      // Ensure we have a valid user session and pass JWT explicitly
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
-        toast({
-          title: "Not signed in",
-          description: "Please log in again to continue.",
-          variant: "destructive",
-        });
-        navigate('/auth');
-        return;
-      }
-
-      const accessToken = sessionData.session.access_token;
-
-      const { data, error } = await supabase.functions.invoke('assign-role', {
-        body: { role: selectedRole },
-        headers: { Authorization: `Bearer ${accessToken}` },
+      const { error } = await updateProfile({
+        role: selectedRole,
+        onboarding_completed: true,
       });
 
       if (error) {
-        console.error('Error assigning role:', error);
         toast({
           title: "Error",
-          description: error.message || "Failed to assign your role. Please try again.",
-          variant: "destructive",
-        });
-      } else if (data?.error) {
-        toast({
-          title: "Error",
-          description: data.error,
+          description: "Failed to update your role. Please try again.",
           variant: "destructive",
         });
       } else {
-        await refreshProfile();
         toast({
           title: "Role Selected!",
           description: `Welcome to EchoSync as a ${roleData[selectedRole].title}`,
@@ -96,7 +73,6 @@ const RoleSelection = () => {
         navigate('/dashboard');
       }
     } catch (error) {
-      console.error('Unexpected error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
