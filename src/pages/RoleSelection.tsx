@@ -51,7 +51,7 @@ const RoleSelection = () => {
   const { updateProfile, profile, user } = useAuth();
   const navigate = useNavigate();
 
-  // Ensure session is ready and check onboarding status
+  // Ensure session is ready before allowing role selection
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -59,40 +59,16 @@ const RoleSelection = () => {
         navigate('/auth');
         return;
       }
-      
-      // Check if onboarding is already completed
-      if (profile?.onboarding_completed) {
-        toast({
-          title: "Already onboarded",
-          description: "Redirecting to dashboard...",
-        });
-        navigate('/dashboard');
-        return;
-      }
-      
       setIsSessionReady(true);
     };
     checkSession();
-  }, [navigate, profile]);
+  }, [navigate]);
 
   const handleRoleSelect = async () => {
     if (!selectedRole || !isSessionReady) return;
 
     setIsLoading(true);
     try {
-      // Get fresh session before making the API call
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        toast({
-          title: "Session Error",
-          description: "Please refresh the page and try again.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
       // Call the secure edge function to assign role
       const { data, error } = await supabase.functions.invoke('select-initial-role', {
         body: { role: selectedRole }
@@ -102,13 +78,13 @@ const RoleSelection = () => {
         console.error('Role selection error:', error);
         toast({
           title: "Error",
-          description: error.message || "Failed to assign role. Please try again.",
+          description: "Failed to assign role. Please try again.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Role Selected!",
-          description: `Welcome to EchoSync as a ${roleData[selectedRole].title}`,
+          description: `Welcome as a ${roleData[selectedRole].title}`,
         });
         // Refresh the profile to get the updated role
         await updateProfile({ onboarding_completed: true });
@@ -118,7 +94,7 @@ const RoleSelection = () => {
       console.error('Unexpected error:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please refresh and try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
