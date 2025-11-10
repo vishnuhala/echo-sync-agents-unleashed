@@ -51,19 +51,29 @@ const RoleSelection = () => {
   const { updateProfile, profile, user } = useAuth();
   const navigate = useNavigate();
 
-  // Ensure session is ready before allowing role selection
+  // Ensure session is ready and check onboarding status
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsSessionReady(true);
-      } else {
-        // Redirect to auth if no session
+      if (!session) {
         navigate('/auth');
+        return;
       }
+      
+      // Check if onboarding is already completed
+      if (profile?.onboarding_completed) {
+        toast({
+          title: "Already onboarded",
+          description: "Redirecting to dashboard...",
+        });
+        navigate('/dashboard');
+        return;
+      }
+      
+      setIsSessionReady(true);
     };
     checkSession();
-  }, [navigate]);
+  }, [navigate, profile]);
 
   const handleRoleSelect = async () => {
     if (!selectedRole || !isSessionReady) return;
