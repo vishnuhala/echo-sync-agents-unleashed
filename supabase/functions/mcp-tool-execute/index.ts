@@ -1,12 +1,20 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { generateEnhancedGoogleMockResponse } from './google-mock-helper.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  serverId: z.string().uuid('Invalid server ID format'),
+  toolName: z.string().min(1, 'Tool name required').max(100),
+  parameters: z.record(z.any()).optional(),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -15,16 +23,36 @@ serve(async (req) => {
   }
 
   try {
-    const { serverId, toolName, parameters, userId } = await req.json();
-
-    if (!serverId || !toolName || !userId) {
-      throw new Error('Missing required parameters');
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with user's auth
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate input
+    const body = await req.json();
+    const validated = requestSchema.parse(body);
+    const { serverId, toolName, parameters } = validated;
+    const userId = user.id; // Use server-verified user ID
 
     // Get MCP server details
     const { data: server, error: serverError } = await supabase
@@ -381,10 +409,21 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error executing MCP tool:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message || 'Internal server error' 
-    }), {
-      status: 500,
+    
+    // Return sanitized error
+    let statusCode = 500;
+    let errorMessage = 'An error occurred executing the tool';
+    
+    if (error.name === 'ZodError') {
+      statusCode = 400;
+      errorMessage = 'Invalid input provided';
+    } else if (error.message?.includes('not found') || error.message?.includes('access denied')) {
+      statusCode = 404;
+      errorMessage = 'Resource not found';
+    }
+    
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

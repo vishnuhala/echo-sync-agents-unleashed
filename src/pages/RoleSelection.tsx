@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
@@ -46,23 +47,52 @@ const roleData = {
 const RoleSelection = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { updateProfile, profile } = useAuth();
+  const [isSessionReady, setIsSessionReady] = useState(false);
+  const { updateProfile, profile, user } = useAuth();
   const navigate = useNavigate();
 
+  // Ensure session is ready before allowing role selection
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsSessionReady(true);
+      } else {
+        // Redirect to auth if no session
+        navigate('/auth');
+      }
+    };
+    checkSession();
+  }, [navigate]);
+
   const handleRoleSelect = async () => {
-    if (!selectedRole) return;
+    if (!selectedRole || !isSessionReady) return;
 
     setIsLoading(true);
     try {
-      const { error } = await updateProfile({
-        role: selectedRole,
-        onboarding_completed: true,
+      // Get fresh session before making the API call
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast({
+          title: "Session Error",
+          description: "Please refresh the page and try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Call the secure edge function to assign role
+      const { data, error } = await supabase.functions.invoke('select-initial-role', {
+        body: { role: selectedRole }
       });
 
       if (error) {
+        console.error('Role selection error:', error);
         toast({
           title: "Error",
-          description: "Failed to update your role. Please try again.",
+          description: error.message || "Failed to assign role. Please try again.",
           variant: "destructive",
         });
       } else {
@@ -70,12 +100,15 @@ const RoleSelection = () => {
           title: "Role Selected!",
           description: `Welcome to EchoSync as a ${roleData[selectedRole].title}`,
         });
+        // Refresh the profile to get the updated role
+        await updateProfile({ onboarding_completed: true });
         navigate('/dashboard');
       }
     } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: "An unexpected error occurred. Please refresh and try again.",
         variant: "destructive",
       });
     } finally {
@@ -137,13 +170,13 @@ const RoleSelection = () => {
         <div className="text-center">
           <Button
             onClick={handleRoleSelect}
-            disabled={!selectedRole || isLoading}
+            disabled={!selectedRole || isLoading || !isSessionReady}
             size="lg"
             className="px-8"
           >
-            {isLoading ? 'Setting up your workspace...' : 'Continue to Dashboard'}
+            {isLoading ? 'Setting up your workspace...' : !isSessionReady ? 'Loading...' : 'Continue to Dashboard'}
           </Button>
-          {selectedRole && (
+          {selectedRole && isSessionReady && (
             <p className="text-sm text-muted-foreground mt-2">
               You can change your role later in settings
             </p>
