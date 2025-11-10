@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/database';
 import { TrendingUp, GraduationCap, Rocket, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const roleData = {
   trader: {
@@ -54,35 +55,40 @@ const RoleSelection = () => {
 
     setIsLoading(true);
     try {
-      console.log('Updating profile with role:', selectedRole);
-      
-      // Update profile directly
-      const { error } = await updateProfile({
-        role: selectedRole,
-        onboarding_completed: true,
+      console.log('Assigning role via edge function:', selectedRole);
+
+      // Call secured edge function to set role in user_roles table
+      const { data, error } = await supabase.functions.invoke('set-user-role', {
+        body: { role: selectedRole },
       });
 
-      if (error) {
-        console.error('Profile update error:', error);
+      if (error || (data as any)?.error) {
+        console.error('Edge function error:', error || (data as any)?.error);
         toast({
-          title: "Error",
-          description: "Failed to update your role. Please try again.",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to update your role. Please try again.',
+          variant: 'destructive',
         });
-      } else {
-        console.log('Profile updated successfully');
-        toast({
-          title: "Role Selected!",
-          description: `Welcome to EchoSync as a ${roleData[selectedRole].title}`,
-        });
-        navigate('/dashboard');
+        return;
       }
+
+      // Update onboarding flag locally (role is handled server-side)
+      const { error: profileError } = await updateProfile({ onboarding_completed: true });
+      if (profileError) {
+        console.warn('Onboarding flag update failed:', profileError);
+      }
+
+      toast({
+        title: 'Role Selected!',
+        description: `Welcome to EchoSync as a ${roleData[selectedRole].title}`,
+      });
+      navigate('/dashboard');
     } catch (error) {
       console.error('Role selection error:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
