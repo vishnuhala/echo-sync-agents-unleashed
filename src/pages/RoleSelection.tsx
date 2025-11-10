@@ -54,18 +54,23 @@ const RoleSelection = () => {
 
     setIsLoading(true);
     try {
+      console.log('Updating profile with role:', selectedRole);
+      
+      // Update profile directly
       const { error } = await updateProfile({
         role: selectedRole,
         onboarding_completed: true,
       });
 
       if (error) {
+        console.error('Profile update error:', error);
         toast({
           title: "Error",
           description: "Failed to update your role. Please try again.",
           variant: "destructive",
         });
       } else {
+        console.log('Profile updated successfully');
         toast({
           title: "Role Selected!",
           description: `Welcome to EchoSync as a ${roleData[selectedRole].title}`,
@@ -73,6 +78,7 @@ const RoleSelection = () => {
         navigate('/dashboard');
       }
     } catch (error) {
+      console.error('Role selection error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
