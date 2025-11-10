@@ -55,8 +55,23 @@ const RoleSelection = () => {
 
     setIsLoading(true);
     try {
+      // Ensure we have a valid user session and pass JWT explicitly
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        toast({
+          title: "Not signed in",
+          description: "Please log in again to continue.",
+          variant: "destructive",
+        });
+        navigate('/auth');
+        return;
+      }
+
+      const accessToken = sessionData.session.access_token;
+
       const { data, error } = await supabase.functions.invoke('assign-role', {
-        body: { role: selectedRole }
+        body: { role: selectedRole },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
 
       if (error) {
@@ -73,9 +88,7 @@ const RoleSelection = () => {
           variant: "destructive",
         });
       } else {
-        // Refresh profile to get updated data
         await refreshProfile();
-        
         toast({
           title: "Role Selected!",
           description: `Welcome to EchoSync as a ${roleData[selectedRole].title}`,
