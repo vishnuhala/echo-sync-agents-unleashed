@@ -51,31 +51,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Defer profile fetch to avoid potential deadlocks
-          setTimeout(async () => {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-            setLoading(false);
-          }, 0);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
+    // Set up auth state listener FIRST (sync callback to avoid deadlocks)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
 
-    // Check for existing session
+      // When session is null, downstream ProtectedRoute will redirect on protected pages
+
+      if (session?.user) {
+        // Defer profile fetch to avoid potential deadlocks
+        setTimeout(async () => {
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
+          setLoading(false);
+        }, 0);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
+
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         fetchProfile(session.user.id).then((profileData) => {
           setProfile(profileData);
@@ -88,7 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
-
   const signUp = async (email: string, password: string, fullName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     

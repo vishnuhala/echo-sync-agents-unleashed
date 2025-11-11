@@ -23,6 +23,7 @@ import Help from "./pages/Help";
 import MCPEditor from "./pages/MCPEditor";
 import Testing from "./pages/Testing";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -40,18 +41,18 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/role-selection" element={<RoleSelection />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/agents" element={<Agents />} />
-                    <Route path="/chat/:agentId" element={<Chat />} />
-                    <Route path="/documents" element={<Documents />} />
-                    <Route path="/workflows" element={<Workflows />} />
-                    <Route path="/integrations" element={<Integrations />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/help" element={<Help />} />
-                    <Route path="/mcp-editor" element={<MCPEditor />} />
-                    <Route path="/testing" element={<Testing />} />
+                    <Route path="/role-selection" element={<ProtectedRoute><RoleSelection /></ProtectedRoute>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                    <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
+                    <Route path="/chat/:agentId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                    <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+                    <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
+                    <Route path="/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
+                    <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                    <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                    <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
+                    <Route path="/mcp-editor" element={<ProtectedRoute><MCPEditor /></ProtectedRoute>} />
+                    <Route path="/testing" element={<ProtectedRoute><Testing /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

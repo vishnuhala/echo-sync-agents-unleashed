@@ -8,3 +8,34 @@ verify_jwt = false
 
 [functions.execute-workflow]
 verify_jwt = false
+
+# Ensure auth-required functions redirect properly when session is missing
+[functions.mcp-server-connect]
+verify_jwt = true
+
+[functions.mcp-server-disconnect]
+verify_jwt = true
+
+[functions.mcp-tool-execute]
+verify_jwt = true
+
+[functions.a2a-communication]
+verify_jwt = true
+
+[functions.execute-a2a-workflow]
+verify_jwt = true
+
+[functions.rag-query]
+verify_jwt = true
+
+[functions.rag-rebuild-index]
+verify_jwt = true
+
+[functions.rag-index-documents]
+verify_jwt = true
+
+[functions.rag-ingest-url]
+verify_jwt = true
+
+[functions.set-user-role]
+verify_jwt = true
