@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
 import { useMCP } from '@/hooks/useMCP';
 import { useRAG } from '@/hooks/useRAG';
 import { useA2A } from '@/hooks/useA2A';
@@ -11,9 +10,13 @@ import { useAgents } from '@/hooks/useAgents';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Play, Loader2 } from 'lucide-react';
+import { TestResult } from './TestResultsPanel';
 
-export const TestInputPanel = () => {
-  const { toast } = useToast();
+interface TestInputPanelProps {
+  onTestResult: (result: Omit<TestResult, 'id' | 'timestamp'>) => void;
+}
+
+export const TestInputPanel = ({ onTestResult }: TestInputPanelProps) => {
   const { servers, executeMCPTool } = useMCP();
   const { vectorIndexes, performRAGQuery } = useRAG();
   const { workflows, executeA2AWorkflow } = useA2A();
@@ -37,24 +40,36 @@ export const TestInputPanel = () => {
 
   const handleMCPTest = async () => {
     if (!mcpServerId) {
-      toast({
-        title: "Error",
-        description: "Please select an MCP server",
-        variant: "destructive",
+      onTestResult({
+        type: 'mcp',
+        status: 'error',
+        message: 'Please select an MCP server',
       });
       return;
     }
 
     setMcpLoading(true);
+    onTestResult({
+      type: 'mcp',
+      status: 'pending',
+      message: `Executing MCP search: "${mcpQuery}"...`,
+    });
+
     try {
       const result = await executeMCPTool(mcpServerId, 'web_search', { query: mcpQuery });
-      toast({
-        title: "MCP Test Successful",
-        description: `Query: "${mcpQuery}" - Results received in real-time`,
+      onTestResult({
+        type: 'mcp',
+        status: 'success',
+        message: `MCP search completed for: "${mcpQuery}"`,
+        data: result,
       });
-      console.log('MCP Test Result:', result);
     } catch (error) {
-      console.error('MCP test error:', error);
+      onTestResult({
+        type: 'mcp',
+        status: 'error',
+        message: 'MCP search failed',
+        data: error instanceof Error ? error.message : 'Unknown error',
+      });
     } finally {
       setMcpLoading(false);
     }
@@ -62,23 +77,36 @@ export const TestInputPanel = () => {
 
   const handleRAGTest = async () => {
     if (!ragIndexId) {
-      toast({
-        title: "Error",
-        description: "Please select a vector index",
-        variant: "destructive",
+      onTestResult({
+        type: 'rag',
+        status: 'error',
+        message: 'Please select a vector index',
       });
       return;
     }
 
     setRagLoading(true);
+    onTestResult({
+      type: 'rag',
+      status: 'pending',
+      message: `Executing RAG query: "${ragQuery}"...`,
+    });
+
     try {
-      await performRAGQuery(ragQuery, ragIndexId);
-      toast({
-        title: "RAG Test Successful",
-        description: `Query processed and results stored in real-time`,
+      const result = await performRAGQuery(ragQuery, ragIndexId);
+      onTestResult({
+        type: 'rag',
+        status: 'success',
+        message: 'RAG query completed successfully',
+        data: result,
       });
     } catch (error) {
-      console.error('RAG test error:', error);
+      onTestResult({
+        type: 'rag',
+        status: 'error',
+        message: 'RAG query failed',
+        data: error instanceof Error ? error.message : 'Unknown error',
+      });
     } finally {
       setRagLoading(false);
     }
@@ -86,23 +114,36 @@ export const TestInputPanel = () => {
 
   const handleA2ATest = async () => {
     if (!a2aWorkflowId) {
-      toast({
-        title: "Error",
-        description: "Please select a workflow",
-        variant: "destructive",
+      onTestResult({
+        type: 'a2a',
+        status: 'error',
+        message: 'Please select a workflow',
       });
       return;
     }
 
     setA2aLoading(true);
+    onTestResult({
+      type: 'a2a',
+      status: 'pending',
+      message: 'Executing A2A workflow...',
+    });
+
     try {
-      await executeA2AWorkflow(a2aWorkflowId);
-      toast({
-        title: "A2A Test Successful",
-        description: "Workflow executed and messages tracked in real-time",
+      const result = await executeA2AWorkflow(a2aWorkflowId);
+      onTestResult({
+        type: 'a2a',
+        status: 'success',
+        message: 'A2A workflow executed successfully',
+        data: result,
       });
     } catch (error) {
-      console.error('A2A test error:', error);
+      onTestResult({
+        type: 'a2a',
+        status: 'error',
+        message: 'A2A workflow execution failed',
+        data: error instanceof Error ? error.message : 'Unknown error',
+      });
     } finally {
       setA2aLoading(false);
     }
@@ -110,25 +151,37 @@ export const TestInputPanel = () => {
 
   const handleAgentTest = async () => {
     if (!selectedAgentId) {
-      toast({
-        title: "Error",
-        description: "Please select an agent",
-        variant: "destructive",
+      onTestResult({
+        type: 'agent',
+        status: 'error',
+        message: 'Please select an agent',
       });
       return;
     }
 
     setAgentLoading(true);
+    onTestResult({
+      type: 'agent',
+      status: 'pending',
+      message: `Sending message to agent: "${agentMessage}"...`,
+    });
+
     try {
       const result = await sendMessage(selectedAgentId, agentMessage);
       if (result.error) throw result.error;
-      toast({
-        title: "Agent Test Successful",
-        description: "Message sent and response received in real-time",
+      onTestResult({
+        type: 'agent',
+        status: 'success',
+        message: 'Agent response received',
+        data: result.response,
       });
-      console.log('Agent Response:', result.response);
     } catch (error) {
-      console.error('Agent test error:', error);
+      onTestResult({
+        type: 'agent',
+        status: 'error',
+        message: 'Failed to get agent response',
+        data: error instanceof Error ? error.message : 'Unknown error',
+      });
     } finally {
       setAgentLoading(false);
     }
@@ -139,7 +192,7 @@ export const TestInputPanel = () => {
       <CardHeader>
         <CardTitle>Test Input Panel</CardTitle>
         <CardDescription>
-          Send test inputs and observe real-time outputs across all systems
+          Send test inputs and observe real-time outputs
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -160,11 +213,17 @@ export const TestInputPanel = () => {
                   <SelectValue placeholder="Choose a server" />
                 </SelectTrigger>
                 <SelectContent>
-                  {servers.map(server => (
-                    <SelectItem key={server.id} value={server.id}>
-                      {server.name} ({server.status})
+                  {servers.length === 0 ? (
+                    <SelectItem value="no-servers" disabled>
+                      No servers available - generate one first
                     </SelectItem>
-                  ))}
+                  ) : (
+                    servers.map(server => (
+                      <SelectItem key={server.id} value={server.id}>
+                        {server.name} ({server.status})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -195,11 +254,17 @@ export const TestInputPanel = () => {
                   <SelectValue placeholder="Choose an index" />
                 </SelectTrigger>
                 <SelectContent>
-                  {vectorIndexes.map(index => (
-                    <SelectItem key={index.id} value={index.id}>
-                      {index.name} ({index.status})
+                  {vectorIndexes.length === 0 ? (
+                    <SelectItem value="no-indexes" disabled>
+                      No indexes available - generate one first
                     </SelectItem>
-                  ))}
+                  ) : (
+                    vectorIndexes.map(index => (
+                      <SelectItem key={index.id} value={index.id}>
+                        {index.name} ({index.status})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -231,11 +296,17 @@ export const TestInputPanel = () => {
                   <SelectValue placeholder="Choose a workflow" />
                 </SelectTrigger>
                 <SelectContent>
-                  {workflows.map(workflow => (
-                    <SelectItem key={workflow.id} value={workflow.id}>
-                      {workflow.name} ({workflow.is_active ? 'Active' : 'Inactive'})
+                  {workflows.length === 0 ? (
+                    <SelectItem value="no-workflows" disabled>
+                      No workflows available - generate one first
                     </SelectItem>
-                  ))}
+                  ) : (
+                    workflows.map(workflow => (
+                      <SelectItem key={workflow.id} value={workflow.id}>
+                        {workflow.name} ({workflow.is_active ? 'Active' : 'Inactive'})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -258,11 +329,17 @@ export const TestInputPanel = () => {
                   <SelectValue placeholder="Choose an agent" />
                 </SelectTrigger>
                 <SelectContent>
-                  {agents.map(agent => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name} - {agent.type}
+                  {agents.length === 0 ? (
+                    <SelectItem value="no-agents" disabled>
+                      No agents available
                     </SelectItem>
-                  ))}
+                  ) : (
+                    agents.map(agent => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name} - {agent.type}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
