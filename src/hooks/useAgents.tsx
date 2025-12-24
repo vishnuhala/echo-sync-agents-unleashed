@@ -25,13 +25,11 @@ export function AgentsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchAgents = async () => {
-    if (!profile?.role) return;
-
     try {
+      // Fetch all active agents (RLS policy now allows viewing all active agents)
       const { data, error } = await supabase
         .from('agents')
         .select('*')
-        .eq('role', profile.role)
         .eq('active', true)
         .order('name');
 
@@ -100,18 +98,18 @@ export function AgentsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const loadData = async () => {
-      if (profile?.role) {
-        setLoading(true);
-        await Promise.all([
-          fetchAgents(),
-          fetchUserAgents(),
-          fetchInteractions(),
-        ]);
-        setLoading(false);
-      }
+      setLoading(true);
+      await Promise.all([
+        fetchAgents(),
+        fetchUserAgents(),
+        fetchInteractions(),
+      ]);
+      setLoading(false);
     };
 
-    loadData();
+    if (user) {
+      loadData();
+    }
 
     // Set up real-time subscriptions
     const agentsChannel = supabase
@@ -164,7 +162,7 @@ export function AgentsProvider({ children }: { children: ReactNode }) {
       supabase.removeChannel(userAgentsChannel);
       supabase.removeChannel(interactionsChannel);
     };
-  }, [profile?.role, user]);
+  }, [user]);
 
   const activateAgent = async (agentId: string) => {
     if (!user) return { error: new Error('No user logged in') };
