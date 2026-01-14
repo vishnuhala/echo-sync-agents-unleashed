@@ -41,18 +41,30 @@ serve(async (req) => {
     // Allow execution even if not connected for demo purposes
     console.log(`Executing tool ${toolName} on MCP server: ${server.name} (status: ${server.status})`);
 
+    // Normalize tool name to avoid mismatch due to casing/whitespace
+    const normalizedToolName = String(toolName ?? '').trim();
+
     // Find the tool in the server's tools
     const tools = Array.isArray(server.tools) ? server.tools : [];
-    const tool = tools.find((t: any) => t.name === toolName);
+    const tool = tools.find((t: any) => String(t?.name ?? '').trim() === normalizedToolName);
 
     // List of known tools that can be executed without being explicitly listed
     const knownTools = ['web_search', 'search', 'get_repository', 'read_file', 'list_files'];
-    const isKnownTool = knownTools.some(t => toolName.includes(t) || toolName === t);
+    const isKnownTool = knownTools.some((t) => normalizedToolName === t || normalizedToolName.includes(t));
     const isGoogleService = server.name.toLowerCase().includes('google');
 
     // Allow execution if tool is found, is a known tool, or is a Google service
     if (!tool && !isKnownTool && !isGoogleService) {
-      throw new Error(`Tool ${toolName} not found on server ${server.name}`);
+      console.error('Tool validation failed', {
+        serverId,
+        serverName: server.name,
+        serverStatus: server.status,
+        normalizedToolName,
+        toolsListed: tools.map((t: any) => t?.name).filter(Boolean),
+        isKnownTool,
+        isGoogleService,
+      });
+      throw new Error(`Tool ${normalizedToolName} not found on server ${server.name}`);
     }
 
     try {
