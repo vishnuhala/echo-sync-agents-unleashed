@@ -45,8 +45,13 @@ serve(async (req) => {
     const tools = Array.isArray(server.tools) ? server.tools : [];
     const tool = tools.find((t: any) => t.name === toolName);
 
-    // If tool not found but this is a Google service, allow execution
-    if (!tool && !server.name.toLowerCase().includes('google')) {
+    // List of known tools that can be executed without being explicitly listed
+    const knownTools = ['web_search', 'search', 'get_repository', 'read_file', 'list_files'];
+    const isKnownTool = knownTools.some(t => toolName.includes(t) || toolName === t);
+    const isGoogleService = server.name.toLowerCase().includes('google');
+
+    // Allow execution if tool is found, is a known tool, or is a Google service
+    if (!tool && !isKnownTool && !isGoogleService) {
       throw new Error(`Tool ${toolName} not found on server ${server.name}`);
     }
 
